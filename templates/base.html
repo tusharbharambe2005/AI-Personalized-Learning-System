@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="description" content="PersonaLearn — AI-inspired Personalized Learning System that adapts to your unique learning style."/>
+  <title>{% block title %}PersonaLearn — Personalized Learning{% endblock %}</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet"/>
+  <!-- Bootstrap 5 -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"/>
+  <!-- Bootstrap Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"/>
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+  <!-- Custom -->
+  <link rel="stylesheet" href="/static/css/style.css"/>
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+
+<!-- ═══════════════════ NAVBAR ═══════════════════ -->
+<header class="navbar-main shadow-sm">
+  <div class="container navbar-main" style="height:64px;max-width:1200px;">
+    <div class="d-flex align-items-center justify-content-between w-100" style="height:64px;">
+
+      <!-- Brand -->
+      <a class="brand" href="{% url 'home' %}">
+        <div class="brand-mark"><i class="bi bi-mortarboard-fill"></i></div>
+        <span class="brand-name">Persona<span>Learn</span></span>
+      </a>
+
+      <!-- Nav Links (desktop) -->
+      {% if user.is_authenticated %}
+      <nav class="d-none d-md-flex">
+        <ul class="nav-links">
+          <li><a href="{% url 'dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}"><i class="bi bi-grid-1x2"></i>Dashboard</a></li>
+          <li><a href="{% url 'subject_list' %}" class="nav-link {% if request.resolver_match.url_name == 'subject_list' or request.resolver_match.url_name == 'topic_list' %}active{% endif %}"><i class="bi bi-collection"></i>Subjects</a></li>
+          <li><a href="{% url 'video_recommendations' %}" class="nav-link {% if request.resolver_match.url_name == 'video_recommendations' %}active{% endif %}"><i class="bi bi-play-circle"></i>Videos</a></li>
+          <li><a href="{% url 'interaction_history' %}" class="nav-link {% if request.resolver_match.url_name == 'interaction_history' %}active{% endif %}"><i class="bi bi-clock-history"></i>History</a></li>
+        </ul>
+      </nav>
+      {% endif %}
+
+      <!-- Right Side -->
+      <div class="d-flex align-items-center gap-2">
+        {% if user.is_authenticated %}
+          <div class="dropdown">
+            <div class="d-flex align-items-center gap-2" style="cursor:pointer;" data-bs-toggle="dropdown">
+              <div class="user-avatar">{{ user.username|first|upper }}</div>
+              <span class="d-none d-lg-block" style="font-size:.875rem;font-weight:600;color:var(--text-secondary);">{{ user.first_name|default:user.username }}</span>
+              <i class="bi bi-chevron-down d-none d-lg-block" style="font-size:.7rem;color:var(--text-light);"></i>
+            </div>
+            <ul class="dropdown-menu pl-dropdown dropdown-menu-end">
+              <li>
+                <div class="dd-header">
+                  <div class="dd-name">{{ user.get_full_name|default:user.username }}</div>
+                  <div class="dd-role">{{ user.email|default:"Student" }}</div>
+                </div>
+              </li>
+              <li><hr class="dropdown-divider"></li>
+              <li><a class="dropdown-item" href="/admin/"><i class="bi bi-shield-check"></i>Admin Panel</a></li>
+              <li>
+                <form action="{% url 'logout' %}" method="post">
+                  {% csrf_token %}
+                  <button type="submit" class="dropdown-item text-danger w-100 text-start border-0 bg-transparent">
+                    <i class="bi bi-box-arrow-right"></i>Sign Out
+                  </button>
+                </form>
+              </li>
+            </ul>
+          </div>
+        {% else %}
+          <a href="{% url 'login' %}" class="btn-secondary btn-sm">Sign In</a>
+          <a href="{% url 'register' %}" class="btn-primary btn-sm">Get Started</a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- ═══════════════════ ALERTS ═══════════════════ -->
+{% if messages %}
+<div class="container" style="max-width:1200px;padding-top:16px;" id="alertContainer">
+  {% for message in messages %}
+  <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show" role="alert" style="border-radius:var(--r-lg);font-size:.875rem;">
+    {{ message|safe }}
+    <button type="button" class="btn-close btn-sm" data-bs-dismiss="alert"></button>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<!-- ═══════════════════ CONTENT ═══════════════════ -->
+<main class="main-content">{% block content %}{% endblock %}</main>
+
+<!-- ═══════════════════ FOOTER ═══════════════════ -->
+<footer class="site-footer">
+  <div class="container" style="max-width:1200px;">
+    <div class="row align-items-center">
+      <div class="col-md-6">
+        <div class="footer-brand">Persona<span>Learn</span></div>
+        <div class="footer-copy">AI-inspired Personalized Learning · No external AI APIs · Rule-based engine</div>
+      </div>
+      <div class="col-md-6 text-md-end mt-3 mt-md-0">
+        <span style="font-size:.8rem;color:var(--text-muted);">Django · DRF · SQLite · Bootstrap 5</span>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/static/js/main.js"></script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block title %}Subjects — PersonaLearn{% endblock %}
+{% block content %}
+<div class="page-container">
+
+  <div class="page-header anim-fade-up">
+    <h1 class="page-title">All Subjects</h1>
+    <p class="page-subtitle">Choose a subject to explore topics and personalized explanations.</p>
+  </div>
+
+  <div class="row g-4">
+    {% for subject in subjects %}
+    <div class="col-md-6 col-lg-4 anim-fade-up" style="animation-delay:{{ forloop.counter0 }}0ms;">
+      <a href="{% url 'topic_list' subject.slug %}" class="subject-card">
+        <div class="subject-icon" style="background:{{ subject.color }}18;">
+          <i class="{{ subject.icon }}" style="color:{{ subject.color }};"></i>
+        </div>
+        <div class="subject-name">{{ subject.name }}</div>
+        <div class="subject-meta"><i class="bi bi-journals me-1"></i>{{ subject.get_topic_count }} topics</div>
+        <p class="subject-desc">{{ subject.description|truncatechars:120 }}</p>
+        <div class="mt-3 d-flex justify-content-between align-items-center">
+          <span style="font-size:.8rem;font-weight:600;color:{{ subject.color }};background:{{ subject.color }}12;padding:4px 11px;border-radius:var(--r-full);">Browse topics →</span>
+        </div>
+      </a>
+    </div>
+    {% empty %}
+    <div class="col-12"><div class="card"><div class="empty-state"><div class="empty-icon"><i class="bi bi-inbox"></i></div><div class="empty-title">No subjects yet</div><p class="empty-desc">Ask your admin to add subjects via the Django admin panel.</p><a href="/admin/" class="btn-primary btn-sm">Open Admin</a></div></div></div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

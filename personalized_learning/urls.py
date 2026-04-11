@@ -1,0 +1,17 @@
+"""
+URL configuration for personalized_learning project.
+"""
+from django.contrib import admin
+from django.urls import path, include
+from django.conf import settings
+from django.conf.urls.static import static
+from learning.views import HomeView
+
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    path('', HomeView.as_view(), name='home'),
+    path('accounts/', include('accounts.urls')),
+    path('', include('learning.urls')),
+    path('api/', include('recommendations.api_urls')),
+    path('api/', include('learning.api_urls')),
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

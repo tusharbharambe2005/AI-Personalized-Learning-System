@@ -1,0 +1,164 @@
+{% extends 'base.html' %}
+{% block title %}Video Recommendations — PersonaLearn{% endblock %}
+{% block content %}
+<div class="page-container">
+
+  <!-- Header -->
+  <div class="d-flex align-items-start justify-content-between flex-wrap gap-3 mb-4 anim-fade-up">
+    <div>
+      <h1 class="page-title">Recommended Videos</h1>
+      <p class="page-subtitle">
+        Sorted by match with your learning style.
+        Your profile: <strong>{{ pref.preferred_style|title }}-focused</strong>.
+      </p>
+    </div>
+    <span class="style-chip chip-{{ pref.preferred_style }}">
+      <i class="bi bi-star-fill"></i>{{ pref.preferred_style|title }} Style
+    </span>
+  </div>
+
+  <!-- How videos are recommended — explanation box -->
+  <div style="background:var(--primary-l);border:1px solid var(--primary-m);border-radius:var(--r-lg);
+              padding:var(--sp-4) var(--sp-5);margin-bottom:var(--sp-6);
+              display:flex;align-items:flex-start;gap:var(--sp-3);" class="anim-fade-up">
+    <i class="bi bi-info-circle-fill" style="color:var(--primary);font-size:1.1rem;flex-shrink:0;margin-top:2px;"></i>
+    <div>
+      <strong style="color:var(--primary);font-size:.875rem;">How recommendations work:</strong>
+      <span style="color:var(--text-secondary);font-size:.8125rem;margin-left:4px;">
+        Each video has style weights (Diagram / Analogy / Example / Theory / Logic).
+        The system scores every video against <em>your</em> preference profile and shows
+        highest-matching videos first. Green <strong>Style Tags</strong> below each card
+        show which styles the video is strong in.
+      </span>
+    </div>
+  </div>
+
+  {% if videos %}
+  <div class="row g-4">
+    {% for video in videos %}
+    <div class="col-sm-6 col-lg-4 anim-fade-up" style="animation-delay:{{ forloop.counter0 }}5ms;">
+      <div class="video-card h-100 d-flex flex-column">
+
+        <!-- Thumbnail -->
+        <a href="{{ video.youtube_url }}" target="_blank" class="text-decoration-none">
+          <div class="video-thumb">
+            <img src="{{ video.get_youtube_thumbnail }}" alt="{{ video.title }}" loading="lazy"
+                 onerror="this.src='https://placehold.co/480x270/f1f5f9/94a3b8?text=Video'"/>
+            <div class="video-play"><div class="play-btn"><i class="bi bi-play-fill"></i></div></div>
+            {% if forloop.counter <= 3 %}
+            <div style="position:absolute;top:10px;left:10px;">
+              <span style="background:var(--primary);color:white;font-size:.68rem;font-weight:700;
+                           padding:3px 10px;border-radius:var(--r-full);">
+                #{{ forloop.counter }} Best Match
+              </span>
+            </div>
+            {% endif %}
+          </div>
+        </a>
+
+        <!-- Info -->
+        <div class="video-info d-flex flex-column flex-grow-1">
+          <!-- Title -->
+          <div class="video-title">{{ video.title|truncatechars:65 }}</div>
+
+          <!-- Topic + Subject -->
+          <div class="video-meta mb-3">
+            <span><i class="bi bi-book"></i>{{ video.topic.title|truncatechars:28 }}</span>
+            <span><i class="bi bi-collection"></i>{{ video.topic.subject.name }}</span>
+          </div>
+
+          <!-- Description -->
+          {% if video.description %}
+          <p style="font-size:.78rem;color:var(--text-muted);line-height:1.55;margin-bottom:var(--sp-3);">
+            {{ video.description|truncatechars:100 }}
+          </p>
+          {% endif %}
+
+          <!-- ── STYLE TAGS ─────────────────────────────────────── -->
+          <!-- These show the user WHICH learning styles this video covers -->
+          <div style="margin-bottom:var(--sp-3);">
+            <div style="font-size:.7rem;font-weight:700;text-transform:uppercase;
+                        letter-spacing:.5px;color:var(--text-muted);margin-bottom:6px;">
+              <i class="bi bi-lightning-fill" style="color:var(--primary);"></i>
+              Strong in these styles:
+            </div>
+            <div class="d-flex flex-wrap gap-1">
+              {% if video.diagram_score >= 60 %}
+              <span class="style-chip chip-diagram" style="font-size:.65rem;padding:3px 9px;">
+                <i class="bi bi-diagram-3"></i> Diagram {{ video.diagram_score }}%
+              </span>
+              {% endif %}
+              {% if video.analogy_score >= 60 %}
+              <span class="style-chip chip-analogy" style="font-size:.65rem;padding:3px 9px;">
+                <i class="bi bi-lightbulb"></i> Analogy {{ video.analogy_score }}%
+              </span>
+              {% endif %}
+              {% if video.example_score >= 60 %}
+              <span class="style-chip chip-example" style="font-size:.65rem;padding:3px 9px;">
+                <i class="bi bi-code-slash"></i> Example {{ video.example_score }}%
+              </span>
+              {% endif %}
+              {% if video.theory_score >= 60 %}
+              <span class="style-chip chip-theory" style="font-size:.65rem;padding:3px 9px;">
+                <i class="bi bi-journal-text"></i> Theory {{ video.theory_score }}%
+              </span>
+              {% endif %}
+              {% if video.logic_score >= 60 %}
+              <span class="style-chip chip-logic" style="font-size:.65rem;padding:3px 9px;">
+                <i class="bi bi-cpu"></i> Logic {{ video.logic_score }}%
+              </span>
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- ── MATCH REASON ───────────────────────────────────── -->
+          <!-- Explains WHY this video was recommended to this user -->
+          <div style="background:var(--surface-2);border-radius:var(--r-md);
+                      padding:var(--sp-2) var(--sp-3);margin-bottom:var(--sp-3);
+                      border-left:3px solid var(--primary);">
+            <span style="font-size:.72rem;color:var(--text-muted);">
+              <i class="bi bi-robot" style="color:var(--primary);"></i>
+              <strong>Why recommended:</strong>
+              {% if pref.preferred_style == 'diagram' and video.diagram_score >= 60 %}
+                Matches your <strong>Diagram</strong> preference (score: {{ video.diagram_score }}%)
+              {% elif pref.preferred_style == 'analogy' and video.analogy_score >= 60 %}
+                Matches your <strong>Analogy</strong> preference (score: {{ video.analogy_score }}%)
+              {% elif pref.preferred_style == 'example' and video.example_score >= 60 %}
+                Matches your <strong>Example</strong> preference (score: {{ video.example_score }}%)
+              {% elif pref.preferred_style == 'theory' and video.theory_score >= 60 %}
+                Matches your <strong>Theory</strong> preference (score: {{ video.theory_score }}%)
+              {% elif pref.preferred_style == 'logic' and video.logic_score >= 60 %}
+                Matches your <strong>Logic</strong> preference (score: {{ video.logic_score }}%)
+              {% else %}
+                Broadly covers multiple learning styles for {{ video.topic.subject.name }}
+              {% endif %}
+            </span>
+          </div>
+
+          <!-- Watch Button -->
+          <div class="mt-auto">
+            <a href="{{ video.youtube_url }}" target="_blank"
+               class="btn-primary btn-sm w-100" style="justify-content:center;">
+              <i class="bi bi-play-fill"></i>Watch on YouTube
+            </a>
+          </div>
+        </div>
+
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  {% else %}
+  <div class="card">
+    <div class="empty-state">
+      <div class="empty-icon"><i class="bi bi-camera-video"></i></div>
+      <div class="empty-title">No videos yet</div>
+      <p class="empty-desc">Videos will appear here once added via the admin panel.</p>
+      <a href="/admin/learning/videoresource/add/" class="btn-primary btn-sm">Add Videos</a>
+    </div>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

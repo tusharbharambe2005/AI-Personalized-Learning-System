@@ -1,0 +1,167 @@
+{% extends 'base.html' %}
+{% block title %}PersonaLearn — Learn Smarter, Your Way{% endblock %}
+{% block content %}
+
+<!-- ── HERO ───────────────────────────────────────────────── -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-grid"></div>
+  <div class="container" style="max-width:1200px;">
+    <div class="row align-items-center g-5">
+      <div class="col-lg-6 anim-fade-up">
+        <div class="hero-eyebrow">
+          <i class="bi bi-stars"></i> Rule-Based Personalization · No AI APIs
+        </div>
+        <h1 class="hero-title">
+          Learn Every Topic<br/>
+          <span class="highlight">Your Way</span>
+        </h1>
+        <p class="hero-desc">
+          Every topic. Multiple explanation styles. The system learns how you think
+          and recommends content that actually clicks — diagrams, analogies, examples,
+          theory, or logic.
+        </p>
+        <div class="hero-actions">
+          {% if user.is_authenticated %}
+          <a href="{% url 'dashboard' %}" class="btn-primary btn-lg"><i class="bi bi-grid-1x2"></i>My Dashboard</a>
+          <a href="{% url 'subject_list' %}" class="btn-secondary btn-lg"><i class="bi bi-collection"></i>Browse Subjects</a>
+          {% else %}
+          <a href="{% url 'register' %}" class="btn-primary btn-lg"><i class="bi bi-rocket-takeoff"></i>Start Learning Free</a>
+          <a href="{% url 'login' %}" class="btn-secondary btn-lg">Sign In</a>
+          {% endif %}
+        </div>
+        <div class="hero-stats">
+          <div>
+            <span class="hero-stat-val">{{ total_subjects }}</span>
+            <span class="hero-stat-lbl">Subjects</span>
+          </div>
+          <div>
+            <span class="hero-stat-val">{{ total_topics }}</span>
+            <span class="hero-stat-lbl">Topics</span>
+          </div>
+          <div>
+            <span class="hero-stat-val">{{ total_content }}+</span>
+            <span class="hero-stat-lbl">Explanations</span>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-6 anim-fade-up anim-d2">
+        <!-- Style Cards Visual -->
+        <div class="d-flex flex-column gap-3">
+          {% for icon, style, chip, label in style_showcase %}
+          <div class="d-flex align-items-center gap-3 p-3 bg-white rounded-3 border" style="max-width:380px;{% if forloop.counter == 1 %}margin-left:auto;{% elif forloop.counter == 3 %}margin-left:auto;{% endif %} box-shadow:var(--shadow-sm);">
+            <div style="width:38px;height:38px;border-radius:var(--r-md);background:{{ bg }};display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;">{{ icon }}</div>
+            <div>
+              <div style="font-size:.8125rem;font-weight:700;color:var(--text);">{{ label }}</div>
+              <div style="font-size:.75rem;color:var(--text-muted);">{{ desc }}</div>
+            </div>
+            <span class="style-chip chip-{{ style }} ms-auto">{{ style|title }}</span>
+          </div>
+          {% empty %}
+          {% for d in "5"|make_list %}
+          {% endfor %}
+          <div class="d-flex align-items-center gap-3 p-3 bg-white rounded-3 border" style="max-width:380px;box-shadow:var(--shadow-sm);">
+            <div style="width:38px;height:38px;border-radius:var(--r-md);background:var(--diagram-l);display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;">📊</div>
+            <div><div style="font-size:.8125rem;font-weight:700;color:var(--text);">Diagram-Based Explanation</div><div style="font-size:.75rem;color:var(--text-muted);">Visual flow, charts, and structure</div></div>
+            <span class="style-chip chip-diagram ms-auto">Diagram</span>
+          </div>
+          <div class="d-flex align-items-center gap-3 p-3 bg-white rounded-3 border" style="max-width:380px;margin-left:auto;box-shadow:var(--shadow-sm);">
+            <div style="width:38px;height:38px;border-radius:var(--r-md);background:var(--analogy-l);display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;">💡</div>
+            <div><div style="font-size:.8125rem;font-weight:700;color:var(--text);">Analogy-Based Explanation</div><div style="font-size:.75rem;color:var(--text-muted);">Real-world comparisons and parallels</div></div>
+            <span class="style-chip chip-analogy ms-auto">Analogy</span>
+          </div>
+          <div class="d-flex align-items-center gap-3 p-3 bg-white rounded-3 border" style="max-width:380px;box-shadow:var(--shadow-sm);">
+            <div style="width:38px;height:38px;border-radius:var(--r-md);background:var(--example-l);display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;">💻</div>
+            <div><div style="font-size:.8125rem;font-weight:700;color:var(--text);">Example-Based Explanation</div><div style="font-size:.75rem;color:var(--text-muted);">Code, problems, and step-by-step demos</div></div>
+            <span class="style-chip chip-example ms-auto">Example</span>
+          </div>
+          <div class="d-flex align-items-center gap-3 p-3 bg-white rounded-3 border" style="max-width:380px;margin-left:auto;box-shadow:var(--shadow-sm);">
+            <div style="width:38px;height:38px;border-radius:var(--r-md);background:var(--theory-l);display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;">📖</div>
+            <div><div style="font-size:.8125rem;font-weight:700;color:var(--text);">Theory-Based Explanation</div><div style="font-size:.75rem;color:var(--text-muted);">Formal definitions and structured text</div></div>
+            <span class="style-chip chip-theory ms-auto">Theory</span>
+          </div>
+          <div class="d-flex align-items-center gap-3 p-3 bg-white rounded-3 border" style="max-width:380px;box-shadow:var(--shadow-sm);">
+            <div style="width:38px;height:38px;border-radius:var(--r-md);background:var(--logic-l);display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;">⚙️</div>
+            <div><div style="font-size:.8125rem;font-weight:700;color:var(--text);">Logic-Based Explanation</div><div style="font-size:.75rem;color:var(--text-muted);">Step-by-step reasoning and proofs</div></div>
+            <span class="style-chip chip-logic ms-auto">Logic</span>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── HOW IT WORKS ────────────────────────────────────────── -->
+<section class="py-5" style="background:var(--surface);">
+  <div class="container py-4" style="max-width:1200px;">
+    <div class="text-center mb-5">
+      <h2 style="font-size:1.75rem;font-weight:800;letter-spacing:-.5px;">How PersonaLearn Works</h2>
+      <p style="color:var(--text-muted);font-size:.9375rem;max-width:480px;margin:.75rem auto 0;">Three simple steps to a fully personalized learning experience.</p>
+    </div>
+    <div class="row g-4">
+      <div class="col-md-4 anim-fade-up">
+        <div class="feature-card text-center">
+          <div class="feature-icon mx-auto" style="background:var(--primary-l);color:var(--primary);">
+            <i class="bi bi-collection-fill"></i>
+          </div>
+          <div class="feature-title">Multiple Styles per Topic</div>
+          <p class="feature-desc">Every topic has Diagram, Analogy, Example, Theory &amp; Logic explanations. Pick what clicks for you.</p>
+        </div>
+      </div>
+      <div class="col-md-4 anim-fade-up anim-d1">
+        <div class="feature-card text-center">
+          <div class="feature-icon mx-auto" style="background:var(--success-l);color:var(--success);">
+            <i class="bi bi-hand-thumbs-up-fill"></i>
+          </div>
+          <div class="feature-title">Select What Helped Most</div>
+          <p class="feature-desc">After reading, mark the version that was clearest. Optionally rate 1–5 stars for a stronger signal.</p>
+        </div>
+      </div>
+      <div class="col-md-4 anim-fade-up anim-d2">
+        <div class="feature-card text-center">
+          <div class="feature-icon mx-auto" style="background:var(--accent-l);color:var(--accent);">
+            <i class="bi bi-graph-up-arrow"></i>
+          </div>
+          <div class="feature-title">Smart Recommendations</div>
+          <p class="feature-desc">The system scores every topic and video against your preference profile and surfaces best matches first.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── SUBJECTS PREVIEW ────────────────────────────────────── -->
+{% if subjects %}
+<section class="py-5">
+  <div class="container py-4" style="max-width:1200px;">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <div>
+        <h2 style="font-size:1.375rem;font-weight:800;letter-spacing:-.3px;margin-bottom:4px;">Available Subjects</h2>
+        <p style="font-size:.875rem;color:var(--text-muted);margin:0;">Start with any subject — your profile adapts as you learn.</p>
+      </div>
+      <a href="{% url 'subject_list' %}" class="btn-ghost"><i class="bi bi-arrow-right"></i>View all</a>
+    </div>
+    <div class="row g-4">
+      {% for subject in subjects %}
+      <div class="col-md-6 col-lg-4 anim-fade-up">
+        <a href="{% url 'topic_list' subject.slug %}" class="subject-card" style="--accent-bg:{{ subject.color }};">
+          <div class="subject-card::after" style="background:{{ subject.color }}10;"></div>
+          <div class="subject-icon" style="background:{{ subject.color }}18;font-size:1.25rem;">
+            <i class="{{ subject.icon }}" style="color:{{ subject.color }};"></i>
+          </div>
+          <div class="subject-name">{{ subject.name }}</div>
+          <div class="subject-meta">{{ subject.get_topic_count }} topics</div>
+          <p class="subject-desc">{{ subject.description|truncatechars:110 }}</p>
+          <div class="d-flex align-items-center gap-2 mt-3">
+            <span style="font-size:.8rem;font-weight:600;color:{{ subject.color }};background:{{ subject.color }}15;padding:4px 10px;border-radius:var(--r-full);">Explore →</span>
+          </div>
+        </a>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+{% endblock %}

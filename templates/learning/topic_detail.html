@@ -1,0 +1,166 @@
+{% extends 'base.html' %}
+{% block title %}{{ topic.title }} — PersonaLearn{% endblock %}
+{% block content %}
+<div class="page-container">
+
+  <!-- Breadcrumb -->
+  <div class="pl-breadcrumb anim-fade-up">
+    <a href="{% url 'subject_list' %}">Subjects</a>
+    <span class="sep"><i class="bi bi-chevron-right"></i></span>
+    <a href="{% url 'topic_list' topic.subject.slug %}">{{ topic.subject.name }}</a>
+    <span class="sep"><i class="bi bi-chevron-right"></i></span>
+    <span class="current">{{ topic.title }}</span>
+  </div>
+
+  <!-- Topic Header -->
+  <div class="row align-items-start mb-4 g-4 anim-fade-up">
+    <div class="col-lg-8">
+      <h1 class="page-title">{{ topic.title }}</h1>
+      <p class="page-subtitle">{{ topic.description|default:"Read each explanation style below and choose the one that helped you the most." }}</p>
+    </div>
+    <div class="col-lg-4">
+      <div class="card" style="border-left:3px solid var(--primary);">
+        <div class="card-body" style="padding:var(--sp-4);">
+          <div style="font-size:.8rem;font-weight:700;color:var(--primary);margin-bottom:var(--sp-2);">
+            <i class="bi bi-info-circle me-1"></i>How to use this page
+          </div>
+          <ol style="font-size:.8125rem;color:var(--text-muted);padding-left:1.1rem;margin:0;line-height:2;">
+            <li>Read <strong style="color:var(--text);">all {{ content_versions|length }} explanation styles</strong> below</li>
+            <li>Click <strong style="color:var(--text);">"This helped me most"</strong> on the best one</li>
+            <li>Optionally give a star rating</li>
+            <li>Future topics will prioritize your style</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Info banner explaining why all versions are shown -->
+  <div style="background:var(--primary-l);border:1px solid var(--primary-m);border-radius:var(--r-lg);padding:var(--sp-4) var(--sp-5);margin-bottom:var(--sp-6);display:flex;align-items:center;gap:var(--sp-3);" class="anim-fade-up">
+    <i class="bi bi-stars" style="color:var(--primary);font-size:1.2rem;flex-shrink:0;"></i>
+    <div>
+      <strong style="color:var(--primary);font-size:.875rem;">All explanation styles are shown intentionally.</strong>
+      <span style="color:var(--text-secondary);font-size:.8125rem;margin-left:4px;">
+        Read each one, then select whichever explained it best. The system uses your choice to personalise future recommendations.
+        {% if pref.interaction_count > 0 %}The <strong>{{ pref.preferred_style|title }}</strong> style card is ranked first based on your existing preference.{% endif %}
+      </span>
+    </div>
+  </div>
+
+  <!-- Explanation Cards -->
+  <div class="section anim-fade-up">
+    <div class="section-header">
+      <div class="section-title">
+        <span class="icon-dot"><i class="bi bi-collection"></i></span>
+        Explanation Styles
+        <span class="badge-count ms-1">{{ content_versions|length }}</span>
+      </div>
+      {% if user_interacted_ids %}
+      <span class="style-chip chip-example"><i class="bi bi-check2"></i>{{ user_interacted_ids|length }} selected</span>
+      {% endif %}
+    </div>
+
+    {% if content_versions %}
+    <div class="row g-4">
+      {% for version in content_versions %}
+      <div class="col-lg-6 anim-fade-up" style="animation-delay:{{ forloop.counter0 }}0ms;">
+        <div class="content-card h-100 {% if version.id in user_interacted_ids %}is-selected{% endif %}" id="cc-{{ version.id }}">
+
+          <!-- Card header: style badge + selected indicator -->
+          <div class="content-card-header">
+            <span class="style-chip chip-{{ version.style_type }}">
+              <i class="{{ version.get_style_icon }}"></i>
+              {{ version.get_style_type_display }}
+            </span>
+            <div class="d-flex align-items-center gap-2">
+              {% if forloop.first and pref.interaction_count > 0 %}
+              <span style="font-size:.7rem;font-weight:600;background:var(--primary-l);color:var(--primary);padding:3px 9px;border-radius:var(--r-full);border:1px solid var(--primary-m);">
+                <i class="bi bi-arrow-up"></i> Best for you
+              </span>
+              {% endif %}
+              {% if version.id in user_interacted_ids %}
+              <span class="style-chip chip-example"><i class="bi bi-check2-circle"></i>Selected</span>
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- Title -->
+          <h5 style="font-size:.9375rem;font-weight:700;margin-bottom:var(--sp-4);color:var(--text);">{{ version.title }}</h5>
+
+          <!-- Content body — full text always visible -->
+          <div class="content-body">{{ version.content }}</div>
+
+          <!-- Selection Form -->
+          <form method="post" style="margin-top:auto;">
+            {% csrf_token %}
+            <input type="hidden" name="content_version_id" value="{{ version.id }}"/>
+            <div class="d-flex align-items-center gap-2">
+              {% if version.id in user_interacted_ids %}
+              <button type="submit" class="btn-success flex-grow-1">
+                <i class="bi bi-check2-circle"></i>Re-select this explanation
+              </button>
+              {% else %}
+              <button type="submit" class="btn-primary flex-grow-1 btn-select-content" data-card-id="{{ version.id }}">
+                <i class="bi bi-hand-thumbs-up"></i>This helped me most
+              </button>
+              {% endif %}
+              <select name="rating" class="form-input form-select" style="width:auto;padding:9px 10px;font-size:.8rem;min-width:90px;">
+                <option value="">Rate</option>
+                <option value="5">⭐⭐⭐⭐⭐</option>
+                <option value="4">⭐⭐⭐⭐</option>
+                <option value="3">⭐⭐⭐</option>
+                <option value="2">⭐⭐</option>
+                <option value="1">⭐</option>
+              </select>
+            </div>
+          </form>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="card"><div class="empty-state">
+      <div class="empty-icon"><i class="bi bi-file-earmark-x"></i></div>
+      <div class="empty-title">No explanations yet</div>
+      <p class="empty-desc">Content will appear here once added by the admin.</p>
+    </div></div>
+    {% endif %}
+  </div>
+
+  <!-- Recommended Videos for This Topic -->
+  {% if recommended_videos %}
+  <div class="section anim-fade-up">
+    <div class="section-header">
+      <div class="section-title"><span class="icon-dot"><i class="bi bi-play-circle"></i></span>Recommended Videos</div>
+      <a href="{% url 'video_recommendations' %}" class="btn-ghost btn-sm">All videos</a>
+    </div>
+    <div class="row g-3">
+      {% for video in recommended_videos %}
+      <div class="col-sm-6 col-lg-4">
+        <div class="video-card">
+          <a href="{{ video.youtube_url }}" target="_blank">
+            <div class="video-thumb">
+              <img src="{{ video.get_youtube_thumbnail }}" alt="{{ video.title }}" loading="lazy"
+                   onerror="this.src='https://placehold.co/480x270/f1f5f9/94a3b8?text=Video'"/>
+              <div class="video-play"><div class="play-btn"><i class="bi bi-play-fill"></i></div></div>
+            </div>
+          </a>
+          <div class="video-info">
+            <div class="video-title">{{ video.title|truncatechars:60 }}</div>
+            <div class="video-meta">{{ video.description|truncatechars:70|default:video.topic.title }}</div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Navigation -->
+  <div class="d-flex justify-content-between align-items-center mt-4">
+    <a href="{% url 'topic_list' topic.subject.slug %}" class="btn-secondary"><i class="bi bi-arrow-left"></i>Back to {{ topic.subject.name }}</a>
+    <a href="{% url 'dashboard' %}" class="btn-ghost"><i class="bi bi-grid-1x2"></i>Dashboard</a>
+  </div>
+
+</div>
+{% endblock %}

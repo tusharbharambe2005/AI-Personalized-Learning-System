@@ -1,0 +1,114 @@
+{% extends 'base.html' %}
+{% block title %}Interaction History — PersonaLearn{% endblock %}
+{% block content %}
+<div class="page-container">
+
+  <!-- Header -->
+  <div class="page-header d-flex align-items-start justify-content-between flex-wrap gap-3 anim-fade-up">
+    <div>
+      <h1 class="page-title">Interaction History</h1>
+      <p class="page-subtitle">Every explanation you've selected — this data shapes your personalised recommendations.</p>
+    </div>
+    <a href="{% url 'dashboard' %}" class="btn-secondary btn-sm"><i class="bi bi-grid-1x2"></i>Dashboard</a>
+  </div>
+
+  <!-- Summary Cards -->
+  <div class="row g-3 mb-5 anim-fade-up anim-d1">
+    <div class="col-6 col-md-3">
+      <div class="stat-card">
+        <div class="stat-icon" style="background:var(--primary-l);color:var(--primary);"><i class="bi bi-cursor-fill"></i></div>
+        <div class="stat-value">{{ pref.interaction_count }}</div>
+        <div class="stat-label">Total Interactions</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="stat-card">
+        <div class="stat-icon" style="background:var(--success-l);color:var(--success);"><i class="bi bi-star-fill"></i></div>
+        <div class="stat-value" style="font-size:1.25rem;padding-top:.25rem;">
+          <span class="style-chip chip-{{ pref.preferred_style }}">{{ pref.preferred_style|title }}</span>
+        </div>
+        <div class="stat-label">Preferred Style</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="stat-card">
+        <div class="stat-icon" style="background:var(--accent-l);color:var(--accent);"><i class="bi bi-journals"></i></div>
+        <div class="stat-value">{{ interactions|length }}</div>
+        <div class="stat-label">Topics Explored</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="stat-card">
+        <div class="stat-icon" style="background:var(--warning-l);color:var(--warning);"><i class="bi bi-bar-chart"></i></div>
+        <div class="stat-value">
+          {% if pref.interaction_count > 0 %}
+            {% with scores=pref.get_normalized_scores %}
+              {{ scores.diagram|floatformat:0 }}
+            {% endwith %}
+          {% else %}0{% endif %}%
+        </div>
+        <div class="stat-label">Top Style Score</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- History Table -->
+  {% if interactions %}
+  <div class="history-table anim-fade-up anim-d2">
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Topic</th>
+          <th>Subject</th>
+          <th>Style Chosen</th>
+          <th>Explanation</th>
+          <th>Rating</th>
+          <th>Date</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in interactions %}
+        <tr>
+          <td style="color:var(--text-light);font-weight:600;font-size:.8rem;">{{ forloop.counter }}</td>
+          <td>
+            <a href="{% url 'topic_detail' item.topic.subject.slug item.topic.slug %}"
+               style="font-weight:600;font-size:.875rem;color:var(--text);">
+              {{ item.topic.title|truncatechars:35 }}
+            </a>
+          </td>
+          <td style="color:var(--text-muted);font-size:.8125rem;">{{ item.topic.subject.name }}</td>
+          <td>
+            <span class="style-chip chip-{{ item.content_version.style_type }}">
+              {{ item.content_version.style_type|title }}
+            </span>
+          </td>
+          <td style="font-size:.8125rem;color:var(--text-muted);">{{ item.content_version.title|truncatechars:38 }}</td>
+          <td>
+            {% if item.rating %}
+            <span class="star-rating">
+              {% for i in "12345" %}{% if forloop.counter <= item.rating %}⭐{% endif %}{% endfor %}
+            </span>
+            {% else %}
+            <span style="color:var(--text-light);font-size:.8rem;">—</span>
+            {% endif %}
+          </td>
+          <td style="font-size:.75rem;color:var(--text-muted);white-space:nowrap;">{{ item.timestamp|date:"d M Y" }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="card anim-fade-up">
+    <div class="empty-state">
+      <div class="empty-icon"><i class="bi bi-clock-history"></i></div>
+      <div class="empty-title">No interactions yet</div>
+      <p class="empty-desc">Start exploring topics and selecting explanations to build your learning profile. The more you interact, the smarter recommendations get.</p>
+      <a href="{% url 'subject_list' %}" class="btn-primary btn-sm"><i class="bi bi-collection"></i>Browse Subjects</a>
+    </div>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

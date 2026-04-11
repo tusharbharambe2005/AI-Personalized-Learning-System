@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+{% block title %}Create Account — PersonaLearn{% endblock %}
+{% block content %}
+<div class="container py-5" style="max-width:1200px;">
+  <div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6 col-xl-5">
+
+      <!-- Brand top -->
+      <div class="text-center mb-4 anim-fade-up">
+        <div class="brand-mark mx-auto mb-3" style="width:48px;height:48px;font-size:1.25rem;">
+          <i class="bi bi-mortarboard-fill"></i>
+        </div>
+        <h1 style="font-size:1.625rem;font-weight:800;letter-spacing:-.5px;margin-bottom:6px;">Create your account</h1>
+        <p style="font-size:.875rem;color:var(--text-muted);">Join PersonaLearn and discover your learning style.</p>
+      </div>
+
+      <div class="auth-card anim-fade-up anim-d1">
+        <form method="post" novalidate>
+          {% csrf_token %}
+          <div class="row g-3">
+
+            <div class="col-6">
+              <div class="form-group mb-0">
+                <label class="form-label">First Name</label>
+                <input type="text" name="first_name" value="{{ form.first_name.value|default:'' }}"
+                       class="form-input {% if form.first_name.errors %}error{% endif %}"
+                       placeholder="First name" required/>
+                {% if form.first_name.errors %}<div class="form-error">{{ form.first_name.errors.0 }}</div>{% endif %}
+              </div>
+            </div>
+
+            <div class="col-6">
+              <div class="form-group mb-0">
+                <label class="form-label">Last Name</label>
+                <input type="text" name="last_name" value="{{ form.last_name.value|default:'' }}"
+                       class="form-input" placeholder="Last name"/>
+              </div>
+            </div>
+
+            <div class="col-12">
+              <div class="form-group mb-0">
+                <label class="form-label">Username</label>
+                <input type="text" name="username" value="{{ form.username.value|default:'' }}"
+                       class="form-input {% if form.username.errors %}error{% endif %}"
+                       placeholder="Choose a username" required autocomplete="username"/>
+                {% if form.username.errors %}<div class="form-error">{{ form.username.errors.0 }}</div>{% endif %}
+              </div>
+            </div>
+
+            <div class="col-12">
+              <div class="form-group mb-0">
+                <label class="form-label">Email Address</label>
+                <input type="email" name="email" value="{{ form.email.value|default:'' }}"
+                       class="form-input {% if form.email.errors %}error{% endif %}"
+                       placeholder="your@email.com" required/>
+                {% if form.email.errors %}<div class="form-error">{{ form.email.errors.0 }}</div>{% endif %}
+              </div>
+            </div>
+
+            <div class="col-12">
+              <div class="form-group mb-0">
+                <label class="form-label">Institution <span style="color:var(--text-light);font-weight:400;">(optional)</span></label>
+                <input type="text" name="institution"
+                       class="form-input" placeholder="College or university name"/>
+              </div>
+            </div>
+
+            <div class="col-12">
+              <div class="form-group mb-0">
+                <label class="form-label">Password</label>
+                <input type="password" name="password1"
+                       class="form-input {% if form.password1.errors %}error{% endif %}"
+                       placeholder="Create a password" autocomplete="new-password"/>
+                {% if form.password1.errors %}<div class="form-error">{{ form.password1.errors.0 }}</div>{% endif %}
+              </div>
+            </div>
+
+            <div class="col-12">
+              <div class="form-group mb-0">
+                <label class="form-label">Confirm Password</label>
+                <input type="password" name="password2"
+                       class="form-input {% if form.password2.errors %}error{% endif %}"
+                       placeholder="Repeat password" autocomplete="new-password"/>
+                {% if form.password2.errors %}<div class="form-error">{{ form.password2.errors.0 }}</div>{% endif %}
+              </div>
+            </div>
+
+            {% if form.non_field_errors %}
+            <div class="col-12">
+              <div class="pl-alert danger">
+                <i class="bi bi-exclamation-circle-fill"></i>
+                <span>{{ form.non_field_errors.0 }}</span>
+              </div>
+            </div>
+            {% endif %}
+
+            <div class="col-12 mt-2">
+              <button type="submit" class="btn-primary w-100 btn-lg" style="justify-content:center;">
+                <i class="bi bi-rocket-takeoff"></i>Create Account
+              </button>
+            </div>
+          </div>
+        </form>
+
+        <hr class="divider"/>
+        <p class="text-center mb-0" style="font-size:.875rem;color:var(--text-muted);">
+          Already have an account?
+          <a href="{% url 'login' %}" style="font-weight:600;color:var(--primary);">Sign in</a>
+        </p>
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}

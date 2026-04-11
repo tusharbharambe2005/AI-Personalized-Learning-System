@@ -1,0 +1,229 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard — PersonaLearn{% endblock %}
+{% block content %}
+<div class="page-container">
+
+  <!-- ── Header ── -->
+  <div class="page-header d-flex align-items-center justify-content-between flex-wrap gap-3 anim-fade-up">
+    <div class="d-flex align-items-center gap-3">
+      <div class="user-avatar" style="width:48px;height:48px;font-size:1.1rem;">{{ user.username|first|upper }}</div>
+      <div>
+        <h1 class="page-title mb-0">Welcome back, {{ user.first_name|default:user.username }}</h1>
+        <p class="page-subtitle mb-0">Your personalized learning journey continues.</p>
+      </div>
+    </div>
+    <span class="style-chip chip-{{ pref.preferred_style }}">
+      <i class="bi bi-star-fill"></i> {{ pref.preferred_style|title }} Learner
+    </span>
+  </div>
+
+  <!-- ── Stats Row ── -->
+  <div class="row g-3 mb-5 anim-fade-up anim-d1">
+    <div class="col-6 col-md-3">
+      <div class="stat-card">
+        <div class="stat-icon" style="background:var(--primary-l);color:var(--primary);"><i class="bi bi-check2-circle"></i></div>
+        <div class="stat-value">{{ progress.completed_topics }}</div>
+        <div class="stat-label">Topics Completed</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="stat-card">
+        <div class="stat-icon" style="background:var(--accent-l);color:var(--accent);"><i class="bi bi-journals"></i></div>
+        <div class="stat-value">{{ progress.total_topics }}</div>
+        <div class="stat-label">Total Topics</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="stat-card">
+        <div class="stat-icon" style="background:var(--success-l);color:var(--success);"><i class="bi bi-cursor-fill"></i></div>
+        <div class="stat-value">{{ pref.interaction_count }}</div>
+        <div class="stat-label">Interactions</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="stat-card">
+        <div class="stat-icon" style="background:var(--warning-l);color:var(--warning);"><i class="bi bi-bar-chart-fill"></i></div>
+        <div class="stat-value">{{ progress.progress_pct }}<span style="font-size:1rem;font-weight:600;">%</span></div>
+        <div class="stat-label">Progress</div>
+        <div class="progress-bar-wrap mt-2">
+          <div class="progress-bar-fill" data-width="{{ progress.progress_pct }}" style="width:0%;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Main Grid ── -->
+  <div class="row g-4 mb-5">
+
+    <!-- Learning Style Profile -->
+    <div class="col-lg-5 anim-fade-up anim-d2">
+      <div class="card h-100">
+        <div class="card-body">
+          <div class="section-header mb-4">
+            <div class="section-title"><span class="icon-dot"><i class="bi bi-pie-chart"></i></span>Style Profile</div>
+          </div>
+          <div class="chart-container mb-4">
+            <canvas id="prefChart"></canvas>
+          </div>
+          <!-- Bars -->
+          {% for style, val in norm_scores.items %}
+          <div class="pref-bar-row">
+            <span class="pref-label">{{ style|title }}</span>
+            <div class="pref-bar-wrap">
+              <div class="progress-bar-fill {{ style }}" data-width="{{ val }}" style="width:0%;"></div>
+            </div>
+            <span class="pref-val">{{ val }}%</span>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Recommended Topics -->
+    <div class="col-lg-7 anim-fade-up anim-d3">
+      <div class="card h-100">
+        <div class="card-body">
+          <div class="section-header">
+            <div class="section-title"><span class="icon-dot"><i class="bi bi-compass"></i></span>Recommended Topics</div>
+            <a href="{% url 'subject_list' %}" class="btn-ghost btn-sm">All subjects</a>
+          </div>
+          {% if recommended_topics %}
+          <div class="d-flex flex-column gap-3">
+            {% for topic in recommended_topics %}
+            <div class="rec-card">
+              <div class="rec-rank">#{{ forloop.counter }}</div>
+              <div class="flex-grow-1">
+                <div class="d-flex justify-content-between align-items-start gap-3">
+                  <div>
+                    <div style="font-size:.9375rem;font-weight:600;color:var(--text);line-height:1.3;">{{ topic.title }}</div>
+                    <div style="font-size:.8rem;color:var(--text-muted);margin-top:3px;"><i class="bi bi-book me-1"></i>{{ topic.subject.name }}</div>
+                  </div>
+                  <a href="{% url 'topic_detail' topic.subject.slug topic.slug %}" class="btn-primary btn-sm flex-shrink-0">
+                    <i class="bi bi-play-fill"></i>Start
+                  </a>
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+          {% else %}
+          <div class="empty-state py-4">
+            <div class="empty-icon"><i class="bi bi-check2-all"></i></div>
+            <div class="empty-title">All caught up!</div>
+            <p class="empty-desc">You've explored all available topics. Great work!</p>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Recommended Videos ── -->
+  <div class="section anim-fade-up">
+    <div class="section-header">
+      <div class="section-title"><span class="icon-dot"><i class="bi bi-play-circle"></i></span>Recommended Videos</div>
+      <a href="{% url 'video_recommendations' %}" class="btn-ghost btn-sm">View all</a>
+    </div>
+    {% if recommended_videos %}
+    <div class="row g-3">
+      {% for video in recommended_videos %}
+      <div class="col-sm-6 col-lg-4">
+        <div class="video-card">
+          <a href="{{ video.youtube_url }}" target="_blank" class="text-decoration-none">
+            <div class="video-thumb">
+              <img src="{{ video.get_youtube_thumbnail }}" alt="{{ video.title }}" loading="lazy"
+                   onerror="this.src='https://placehold.co/480x270/f1f5f9/94a3b8?text=Video'"/>
+              <div class="video-play"><div class="play-btn"><i class="bi bi-play-fill"></i></div></div>
+            </div>
+          </a>
+          <div class="video-info">
+            <div class="video-title">{{ video.title|truncatechars:55 }}</div>
+            <div class="video-meta mb-2"><i class="bi bi-book"></i>{{ video.topic.title|truncatechars:30 }}</div>
+            <!-- Style strength tags -->
+            <div class="d-flex flex-wrap gap-1 mt-1">
+              {% if video.diagram_score >= 60 %}<span class="style-chip chip-diagram" style="font-size:.6rem;padding:2px 7px;">Diagram {{ video.diagram_score }}%</span>{% endif %}
+              {% if video.analogy_score >= 60 %}<span class="style-chip chip-analogy" style="font-size:.6rem;padding:2px 7px;">Analogy {{ video.analogy_score }}%</span>{% endif %}
+              {% if video.example_score >= 60 %}<span class="style-chip chip-example" style="font-size:.6rem;padding:2px 7px;">Example {{ video.example_score }}%</span>{% endif %}
+              {% if video.theory_score >= 60 %}<span class="style-chip chip-theory" style="font-size:.6rem;padding:2px 7px;">Theory {{ video.theory_score }}%</span>{% endif %}
+              {% if video.logic_score >= 60 %}<span class="style-chip chip-logic" style="font-size:.6rem;padding:2px 7px;">Logic {{ video.logic_score }}%</span>{% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="card"><div class="empty-state"><div class="empty-icon"><i class="bi bi-camera-video"></i></div><p class="empty-desc mb-0">No videos yet. Add some via the admin panel.</p></div></div>
+    {% endif %}
+
+  </div>
+
+  <!-- ── Recent Activity ── -->
+  {% if recent_interactions %}
+  <div class="section anim-fade-up">
+    <div class="section-header">
+      <div class="section-title"><span class="icon-dot"><i class="bi bi-clock-history"></i></span>Recent Activity</div>
+      <a href="{% url 'interaction_history' %}" class="btn-ghost btn-sm">Full history</a>
+    </div>
+    <div class="d-flex flex-column gap-2">
+    {% for item in recent_interactions %}
+    <div class="rec-card" style="border-left:3px solid var(--border-focus);">
+      <span class="style-chip chip-{{ item.content_version.style_type }}">{{ item.content_version.style_type|title }}</span>
+      <div class="flex-grow-1">
+        <span style="font-size:.875rem;font-weight:600;color:var(--text);">{{ item.topic.title }}</span>
+        <span style="font-size:.8rem;color:var(--text-muted);margin-left:8px;">{{ item.topic.subject.name }}</span>
+      </div>
+      {% if item.rating %}<span class="star-rating">{% for i in "12345" %}{% if forloop.counter <= item.rating %}⭐{% endif %}{% endfor %}</span>{% endif %}
+      <span style="font-size:.75rem;color:var(--text-light);white-space:nowrap;">{{ item.timestamp|timesince }} ago</span>
+    </div>
+    {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const ctx = document.getElementById('prefChart');
+  if (!ctx) return;
+  const d = {{ chart_data_json|safe }};
+  new Chart(ctx, {
+    type: 'radar',
+    data: {
+      labels: d.labels,
+      datasets: [{
+        label: 'Learning Style',
+        data: d.values,
+        backgroundColor: 'rgba(79,70,229,0.08)',
+        borderColor: 'rgba(79,70,229,0.6)',
+        borderWidth: 2,
+        pointBackgroundColor: '#4f46e5',
+        pointBorderColor: '#fff',
+        pointBorderWidth: 2,
+        pointRadius: 5,
+        pointHoverRadius: 7,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        r: {
+          min: 0, max: 100,
+          grid: { color: 'rgba(15,23,42,0.06)' },
+          angleLines: { color: 'rgba(15,23,42,0.06)' },
+          pointLabels: {
+            color: '#64748b',
+            font: { family: 'Inter', size: 11, weight: '600' }
+          },
+          ticks: { display: false }
+        }
+      }
+    }
+  });
+});
+</script>
+{% endblock %}

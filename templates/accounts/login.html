@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+{% block title %}Sign In — PersonaLearn{% endblock %}
+{% block content %}
+<div class="container py-5" style="max-width:1200px;">
+  <div class="row justify-content-center">
+    <div class="col-md-7 col-lg-5 col-xl-4">
+
+      <!-- Brand top -->
+      <div class="text-center mb-4 anim-fade-up">
+        <div class="brand-mark mx-auto mb-3" style="width:48px;height:48px;font-size:1.25rem;">
+          <i class="bi bi-mortarboard-fill"></i>
+        </div>
+        <h1 style="font-size:1.625rem;font-weight:800;letter-spacing:-.5px;margin-bottom:6px;">Welcome back</h1>
+        <p style="font-size:.875rem;color:var(--text-muted);">Sign in to continue your personalised journey.</p>
+      </div>
+
+      <div class="auth-card anim-fade-up anim-d1">
+        <form method="post" novalidate>
+          {% csrf_token %}
+
+          <div class="form-group">
+            <label class="form-label">Username</label>
+            <input type="text" name="username"
+                   class="form-input {% if form.username.errors %}error{% endif %}"
+                   placeholder="Enter your username" autocomplete="username" autofocus/>
+            {% if form.username.errors %}<div class="form-error">{{ form.username.errors.0 }}</div>{% endif %}
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Password</label>
+            <input type="password" name="password"
+                   class="form-input {% if form.password.errors %}error{% endif %}"
+                   placeholder="Enter your password" autocomplete="current-password"/>
+            {% if form.password.errors %}<div class="form-error">{{ form.password.errors.0 }}</div>{% endif %}
+          </div>
+
+          {% if form.non_field_errors %}
+          <div class="pl-alert danger mb-4">
+            <i class="bi bi-exclamation-circle-fill"></i>
+            <span>{{ form.non_field_errors.0 }}</span>
+          </div>
+          {% endif %}
+
+          <button type="submit" class="btn-primary w-100 btn-lg" style="justify-content:center;">
+            <i class="bi bi-box-arrow-in-right"></i>Sign In
+          </button>
+        </form>
+
+        <hr class="divider"/>
+        <p class="text-center mb-3" style="font-size:.875rem;color:var(--text-muted);">
+          Don't have an account?
+          <a href="{% url 'register' %}" style="font-weight:600;color:var(--primary);">Register free</a>
+        </p>
+
+        <!-- Demo credentials -->
+        <div style="background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r-lg);padding:var(--sp-4);text-align:center;">
+          <p style="font-size:.75rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:var(--sp-2);">Demo Credentials</p>
+          <div class="d-flex gap-3 justify-content-center flex-wrap">
+            <div style="font-size:.8125rem;">
+              <span style="color:var(--text-muted);">Admin:</span>
+              <code style="background:var(--primary-l);color:var(--primary);padding:2px 8px;border-radius:var(--r-sm);font-size:.8rem;">admin / admin123</code>
+            </div>
+            <div style="font-size:.8125rem;">
+              <span style="color:var(--text-muted);">Student:</span>
+              <code style="background:var(--success-l);color:var(--success);padding:2px 8px;border-radius:var(--r-sm);font-size:.8rem;">student / student123</code>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}

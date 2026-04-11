@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% block title %}{{ subject.name }} — PersonaLearn{% endblock %}
+{% block content %}
+<div class="page-container">
+
+  <div class="pl-breadcrumb anim-fade-up">
+    <a href="{% url 'subject_list' %}">Subjects</a>
+    <span class="sep"><i class="bi bi-chevron-right"></i></span>
+    <span class="current">{{ subject.name }}</span>
+  </div>
+
+  <!-- Subject Header -->
+  <div class="d-flex align-items-start gap-4 mb-5 anim-fade-up">
+    <div class="subject-icon" style="background:{{ subject.color }}18;width:56px;height:56px;font-size:1.375rem;flex-shrink:0;">
+      <i class="{{ subject.icon }}" style="color:{{ subject.color }};"></i>
+    </div>
+    <div>
+      <h1 class="page-title mb-1">{{ subject.name }}</h1>
+      <p class="page-subtitle mb-0">{{ subject.description }}</p>
+    </div>
+  </div>
+
+  <!-- Topic List -->
+  <div class="section-header mb-3 anim-fade-up">
+    <div class="section-title"><span class="icon-dot"><i class="bi bi-journals"></i></span>Topics <span class="badge-count ms-1">{{ topics_with_status|length }}</span></div>
+  </div>
+
+  <div class="d-flex flex-column gap-3">
+    {% for item in topics_with_status %}
+    <div class="topic-row {% if item.completed %}completed{% endif %} anim-fade-up" style="animation-delay:{{ forloop.counter0 }}5ms;">
+      <div class="topic-num {% if item.completed %}done{% endif %}">
+        {% if item.completed %}<i class="bi bi-check2"></i>{% else %}{{ forloop.counter }}{% endif %}
+      </div>
+      <div class="flex-grow-1">
+        <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+          <div>
+            <div class="topic-title">{{ item.topic.title }}</div>
+            <div class="topic-sub d-flex gap-3 mt-1">
+              <span><i class="bi bi-file-text me-1"></i>{{ item.content_count }} explanations</span>
+              <span><i class="bi bi-play-circle me-1"></i>{{ item.video_count }} videos</span>
+              {% if item.completed %}<span style="color:var(--success);"><i class="bi bi-check2-circle me-1"></i>Completed</span>{% endif %}
+            </div>
+          </div>
+          <a href="{% url 'topic_detail' subject.slug item.topic.slug %}" class="btn-primary btn-sm">
+            {% if item.completed %}<i class="bi bi-arrow-repeat"></i>Review{% else %}<i class="bi bi-play-fill"></i>Start{% endif %}
+          </a>
+        </div>
+      </div>
+    </div>
+    {% empty %}
+    <div class="card"><div class="empty-state"><div class="empty-icon"><i class="bi bi-inbox"></i></div><div class="empty-title">No topics yet</div><p class="empty-desc">Topics are being added to this subject.</p></div></div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}
