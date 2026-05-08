@@ -1,0 +1,209 @@
+{% extends 'base.html' %}
+{% block title %}My Profile — PersonaLearn{% endblock %}
+
+{% block content %}
+<div class="page-container" style="max-width:1100px;">
+
+  <!-- Page Header -->
+  <div class="page-header anim-fade-up">
+    <h1 class="page-title">My Profile</h1>
+    <p class="page-subtitle">Manage your personal info, avatar, and account settings.</p>
+  </div>
+
+  <div class="profile-layout">
+
+    <!-- ═══ LEFT PANEL ═══ -->
+    <aside class="profile-sidebar anim-fade-up" style="animation-delay:.05s;">
+
+      <!-- Avatar Card -->
+      <div class="profile-avatar-card">
+        <div class="profile-avatar-ring" id="avatarRingWrap">
+          {% if profile.get_avatar_url %}
+            <img src="{{ profile.get_avatar_url }}" alt="Avatar" class="profile-avatar-img" id="avatarPreview"/>
+          {% else %}
+            <div class="profile-avatar-initials" id="avatarInitials">{{ user.profile.get_avatar_initial }}</div>
+            <img src="" alt="" class="profile-avatar-img d-none" id="avatarPreview"/>
+          {% endif %}
+          <!-- Upload overlay -->
+          <label class="avatar-overlay" for="avatarInput" title="Change photo">
+            <i class="bi bi-camera-fill"></i>
+          </label>
+        </div>
+
+        <!-- Hidden avatar upload form -->
+        <form method="post" action="{% url 'avatar_update' %}" enctype="multipart/form-data" id="avatarForm">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="upload" id="avatarAction"/>
+          {{ avatar_form.avatar }}
+        </form>
+
+        <div class="profile-name">{{ user.get_full_name|default:user.username }}</div>
+        <div class="profile-username">@{{ user.username }}</div>
+        {% if user.profile.institution %}
+          <div class="profile-institution"><i class="bi bi-building"></i> {{ user.profile.institution }}</div>
+        {% endif %}
+
+        <!-- Remove avatar -->
+        {% if profile.get_avatar_url %}
+        <form method="post" action="{% url 'avatar_update' %}" style="margin-top:10px;">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="remove"/>
+          <button type="submit" class="btn-remove-avatar" onclick="return confirm('Remove profile picture?')">
+            <i class="bi bi-trash3"></i> Remove Photo
+          </button>
+        </form>
+        {% endif %}
+      </div>
+
+      <!-- Stats Card -->
+      <div class="profile-stats-card anim-fade-up" style="animation-delay:.1s;">
+        <div class="profile-stat">
+          <div class="profile-stat-val">{{ interaction_count }}</div>
+          <div class="profile-stat-lbl">Topics Studied</div>
+        </div>
+        <div class="profile-stat-divider"></div>
+        <div class="profile-stat">
+          <div class="profile-stat-val" style="text-transform:capitalize;">{{ preferred_style }}</div>
+          <div class="profile-stat-lbl">Learning Style</div>
+        </div>
+        <div class="profile-stat-divider"></div>
+        <div class="profile-stat">
+          <a href="{% url 'dashboard' %}" class="profile-stat-link"><i class="bi bi-grid-1x2"></i> Dashboard</a>
+        </div>
+      </div>
+
+    </aside>
+
+    <!-- ═══ RIGHT PANEL ═══ -->
+    <div class="profile-main anim-fade-up" style="animation-delay:.1s;">
+
+      <!-- Tab Nav -->
+      <div class="profile-tabs">
+        <button class="profile-tab {% if active_tab != 'password' %}active{% endif %}" data-tab="info">
+          <i class="bi bi-person"></i> Personal Info
+        </button>
+        <button class="profile-tab {% if active_tab == 'password' %}active{% endif %}" data-tab="password">
+          <i class="bi bi-lock"></i> Password
+        </button>
+      </div>
+
+      <!-- ── Tab: Personal Info ── -->
+      <div class="profile-tab-pane {% if active_tab != 'password' %}active{% endif %}" id="tab-info">
+        <form method="post" action="{% url 'profile_update' %}">
+          {% csrf_token %}
+
+          <div class="profile-form-grid">
+            <div class="form-group">
+              <label class="form-label">First Name</label>
+              {{ info_form.first_name }}
+              {% if info_form.first_name.errors %}<div class="form-error">{{ info_form.first_name.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="form-group">
+              <label class="form-label">Last Name</label>
+              {{ info_form.last_name }}
+            </div>
+            <div class="form-group">
+              <label class="form-label">Username <span class="required-star">*</span></label>
+              {{ info_form.username }}
+              {% if info_form.username.errors %}<div class="form-error">{{ info_form.username.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="form-group">
+              <label class="form-label">Email Address</label>
+              {{ info_form.email }}
+              {% if info_form.email.errors %}<div class="form-error">{{ info_form.email.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="form-group" style="grid-column:1/-1;">
+              <label class="form-label">College / Institution</label>
+              {{ info_form.institution }}
+            </div>
+            <div class="form-group" style="grid-column:1/-1;">
+              <label class="form-label">Bio</label>
+              {{ info_form.bio }}
+            </div>
+          </div>
+
+          <div class="profile-form-actions">
+            <button type="submit" class="btn-primary" id="saveInfoBtn">
+              <i class="bi bi-check2"></i> Save Changes
+            </button>
+            <a href="{% url 'dashboard' %}" class="btn-secondary">Cancel</a>
+          </div>
+        </form>
+      </div>
+
+      <!-- ── Tab: Password ── -->
+      <div class="profile-tab-pane {% if active_tab == 'password' %}active{% endif %}" id="tab-password">
+        <form method="post" action="{% url 'password_update' %}">
+          {% csrf_token %}
+
+          <div class="form-group">
+            <label class="form-label">Current Password</label>
+            {{ password_form.old_password }}
+            {% if password_form.old_password.errors %}<div class="form-error">{{ password_form.old_password.errors.0 }}</div>{% endif %}
+          </div>
+          <div class="form-group">
+            <label class="form-label">New Password</label>
+            {{ password_form.new_password1 }}
+            {% if password_form.new_password1.errors %}<div class="form-error">{{ password_form.new_password1.errors.0 }}</div>{% endif %}
+          </div>
+          <div class="form-group">
+            <label class="form-label">Confirm New Password</label>
+            {{ password_form.new_password2 }}
+            {% if password_form.new_password2.errors %}<div class="form-error">{{ password_form.new_password2.errors.0 }}</div>{% endif %}
+          </div>
+
+          <div class="profile-form-actions">
+            <button type="submit" class="btn-primary">
+              <i class="bi bi-shield-lock"></i> Change Password
+            </button>
+          </div>
+        </form>
+      </div>
+
+    </div><!-- /.profile-main -->
+  </div><!-- /.profile-layout -->
+</div>
+
+{% block extra_js %}
+<script>
+  // ── Tab switching ────────────────────────────────────────
+  document.querySelectorAll('.profile-tab').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('.profile-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.profile-tab-pane').forEach(p => p.classList.remove('active'));
+      this.classList.add('active');
+      document.getElementById('tab-' + this.dataset.tab).classList.add('active');
+    });
+  });
+
+  // ── Avatar live preview ──────────────────────────────────
+  const avatarInput = document.getElementById('avatarInput');
+  const avatarPreview = document.getElementById('avatarPreview');
+  const avatarInitials = document.getElementById('avatarInitials');
+
+  if (avatarInput) {
+    avatarInput.addEventListener('change', function() {
+      const file = this.files[0];
+      if (!file) return;
+      if (!file.type.startsWith('image/')) {
+        alert('Please select an image file.');
+        return;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        alert('File is too large. Maximum size is 5MB.');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        avatarPreview.src = e.target.result;
+        avatarPreview.classList.remove('d-none');
+        if (avatarInitials) avatarInitials.style.display = 'none';
+        // Auto-submit
+        document.getElementById('avatarForm').submit();
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+</script>
+{% endblock %}
+{% endblock %}

@@ -21,6 +21,61 @@
 </head>
 <body>
 
+<!-- ═══════════════════ MOBILE NAV DRAWER ═══════════════════ -->
+{% if user.is_authenticated %}
+<div class="mobile-nav-backdrop" id="mobileNavBackdrop"></div>
+<aside class="mobile-nav-drawer" id="mobileNavDrawer">
+  <div class="mobile-nav-header">
+    <div class="brand">
+      <div class="brand-mark"><i class="bi bi-mortarboard-fill"></i></div>
+      <span class="brand-name">Persona<span>Learn</span></span>
+    </div>
+    <button class="mobile-nav-close" id="mobileNavClose"><i class="bi bi-x-lg"></i></button>
+  </div>
+  <!-- User info -->
+  <div class="mobile-nav-user">
+    <div class="mobile-nav-avatar">
+      {% if user.profile.get_avatar_url %}
+        <img src="{{ user.profile.get_avatar_url }}" alt="Avatar"/>
+      {% else %}
+        {{ user.profile.get_avatar_initial }}
+      {% endif %}
+    </div>
+    <div>
+      <div class="mobile-nav-name">{{ user.get_full_name|default:user.username }}</div>
+      <div class="mobile-nav-email">{{ user.email|default:"Student" }}</div>
+    </div>
+  </div>
+  <!-- Nav links -->
+  <nav class="mobile-nav-links">
+    <a href="{% url 'dashboard' %}" class="mobile-nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+      <i class="bi bi-grid-1x2"></i> Dashboard
+    </a>
+    <a href="{% url 'subject_list' %}" class="mobile-nav-link {% if request.resolver_match.url_name == 'subject_list' or request.resolver_match.url_name == 'topic_list' %}active{% endif %}">
+      <i class="bi bi-collection"></i> Subjects
+    </a>
+    <a href="{% url 'video_recommendations' %}" class="mobile-nav-link {% if request.resolver_match.url_name == 'video_recommendations' %}active{% endif %}">
+      <i class="bi bi-play-circle"></i> Videos
+    </a>
+    <a href="{% url 'interaction_history' %}" class="mobile-nav-link {% if request.resolver_match.url_name == 'interaction_history' %}active{% endif %}">
+      <i class="bi bi-clock-history"></i> History
+    </a>
+    <a href="{% url 'profile' %}" class="mobile-nav-link {% if request.resolver_match.url_name == 'profile' %}active{% endif %}">
+      <i class="bi bi-person-circle"></i> My Profile
+    </a>
+  </nav>
+  <!-- Sign out -->
+  <div class="mobile-nav-footer">
+    <form action="{% url 'logout' %}" method="post">
+      {% csrf_token %}
+      <button type="submit" class="mobile-nav-signout">
+        <i class="bi bi-box-arrow-right"></i> Sign Out
+      </button>
+    </form>
+  </div>
+</aside>
+{% endif %}
+
 <!-- ═══════════════════ NAVBAR ═══════════════════ -->
 <header class="navbar-main shadow-sm">
   <div class="container navbar-main" style="height:64px;max-width:1200px;">
@@ -47,9 +102,16 @@
       <!-- Right Side -->
       <div class="d-flex align-items-center gap-2">
         {% if user.is_authenticated %}
-          <div class="dropdown">
+          <!-- Desktop dropdown -->
+          <div class="dropdown d-none d-md-block">
             <div class="d-flex align-items-center gap-2" style="cursor:pointer;" data-bs-toggle="dropdown">
-              <div class="user-avatar">{{ user.username|first|upper }}</div>
+              <div class="user-avatar">
+                {% if user.profile.get_avatar_url %}
+                  <img src="{{ user.profile.get_avatar_url }}" alt="Avatar" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"/>
+                {% else %}
+                  {{ user.username|first|upper }}
+                {% endif %}
+              </div>
               <span class="d-none d-lg-block" style="font-size:.875rem;font-weight:600;color:var(--text-secondary);">{{ user.first_name|default:user.username }}</span>
               <i class="bi bi-chevron-down d-none d-lg-block" style="font-size:.7rem;color:var(--text-light);"></i>
             </div>
@@ -61,7 +123,9 @@
                 </div>
               </li>
               <li><hr class="dropdown-divider"></li>
-              <li><a class="dropdown-item" href="/admin/"><i class="bi bi-shield-check"></i>Admin Panel</a></li>
+              <li><a class="dropdown-item" href="{% url 'profile' %}"><i class="bi bi-person-circle"></i>My Profile</a></li>
+              <li><a class="dropdown-item" href="{% url 'dashboard' %}"><i class="bi bi-grid-1x2"></i>Dashboard</a></li>
+              <li><hr class="dropdown-divider"></li>
               <li>
                 <form action="{% url 'logout' %}" method="post">
                   {% csrf_token %}
@@ -72,6 +136,10 @@
               </li>
             </ul>
           </div>
+          <!-- Mobile hamburger -->
+          <button class="hamburger-btn d-md-none" id="mobileNavOpen" aria-label="Open menu">
+            <span></span><span></span><span></span>
+          </button>
         {% else %}
           <a href="{% url 'login' %}" class="btn-secondary btn-sm">Sign In</a>
           <a href="{% url 'register' %}" class="btn-primary btn-sm">Get Started</a>
