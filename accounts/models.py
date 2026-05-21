@@ -15,6 +15,14 @@ class UserProfile(models.Model):
     avatar_initial = models.CharField(max_length=2, blank=True)  # For generated avatar
     avatar = models.ImageField(upload_to='avatars/', blank=True, null=True)
     institution = models.CharField(max_length=200, blank=True)
+    
+    # Pro upgrade fields
+    is_pro = models.BooleanField(default=False)
+    pro_requested = models.BooleanField(default=False)       # True after coupon submitted
+    pro_request_at = models.DateTimeField(null=True, blank=True)  # When student submitted
+    pro_approved_at = models.DateTimeField(null=True, blank=True) # When admin approved
+    pro_coupon_used = models.CharField(max_length=50, blank=True) # Store coupon used
+    
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

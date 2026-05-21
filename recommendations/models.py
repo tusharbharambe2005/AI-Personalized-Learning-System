@@ -122,6 +122,7 @@ class UserInteraction(models.Model):
     rating = models.PositiveIntegerField(
         null=True, blank=True, help_text='Optional 1-5 rating from user'
     )
+    skipped = models.BooleanField(default=False, help_text='True if user clicked Not Interested')
     timestamp = models.DateTimeField(auto_now_add=True)
 
     class Meta:

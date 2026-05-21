@@ -17,6 +17,36 @@
     </span>
   </div>
 
+  <!-- ── Pro Status Widget ── -->
+  {% with profile=request.user.profile %}
+  <div class="mb-4 anim-fade-up">
+      {% if profile.is_pro %}
+      <div class="alert alert-success d-flex align-items-center gap-3 shadow-sm border-0" style="border-radius: var(--r-xl);">
+          <div class="fs-2">✅</div>
+          <div>
+              <h5 class="mb-1 text-success fw-bold">Pro Active</h5>
+              <p class="mb-0 text-success opacity-75">AI Chatbot is unlocked. <a href="{% url 'chatbot' %}" class="fw-bold text-success text-decoration-underline">Open Chatbot →</a></p>
+          </div>
+      </div>
+      {% elif profile.pro_requested %}
+      <div class="alert alert-warning d-flex align-items-center gap-3 shadow-sm border-0" style="border-radius: var(--r-xl);">
+          <div class="fs-2">⏳</div>
+          <div>
+              <h5 class="mb-1 text-dark fw-bold">Pro Approval Pending</h5>
+              <p class="mb-0 text-dark opacity-75">Your request was submitted on {{ profile.pro_request_at|date:"d M Y, H:i" }}. Admin will review shortly.</p>
+          </div>
+      </div>
+      {% else %}
+      <div class="alert alert-info d-flex align-items-center gap-3 shadow-sm border-0" style="border-radius: var(--r-xl); background: #e0f2fe; color: #0369a1;">
+          <div class="fs-2">⚡</div>
+          <div>
+              <p class="mb-0 fs-6"><a href="{% url 'upgrade' %}" class="fw-bold" style="color: #0369a1;">Upgrade to Pro</a> to unlock the AI Chatbot tutor.</p>
+          </div>
+      </div>
+      {% endif %}
+  </div>
+  {% endwith %}
+
   <!-- ── Stats Row ── -->
   <div class="row g-3 mb-5 anim-fade-up anim-d1">
     <div class="col-6 col-md-3">

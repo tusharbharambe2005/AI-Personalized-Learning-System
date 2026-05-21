@@ -37,9 +37,10 @@ class UserInteractionSerializer(serializers.ModelSerializer):
 
 
 class SubmitInteractionSerializer(serializers.Serializer):
-    """Serializer for submitting a content version selection."""
+    """Serializer for submitting a content version selection (rate or skip)."""
     content_version_id = serializers.IntegerField()
     rating = serializers.IntegerField(min_value=1, max_value=5, required=False, allow_null=True)
+    skipped = serializers.BooleanField(required=False, default=False)
 
 
 class RecommendedContentSerializer(serializers.Serializer):

@@ -10,13 +10,13 @@ from django.db.models import Q
 import json
 
 from .models import Subject, Topic, ContentVersion, VideoResource
-from .forms import ContentSelectionForm
 from recommendations.models import UserPreference, UserInteraction
 from recommendations.engine import (
     get_recommended_content_versions,
     get_recommended_topics,
     get_recommended_videos,
     get_user_progress,
+    get_next_content_for_topic,
 )
 
 
@@ -125,8 +125,8 @@ class TopicListView(View):
 @method_decorator(login_required, name='dispatch')
 class TopicDetailView(View):
     """
-    Topic detail page — shows multiple explanation versions sorted by user preference.
-    Student selects the version that helped most.
+    Topic detail page — sequential, one-card-at-a-time content delivery.
+    Shows the next unseen content version based on user's preference priority.
     """
     template_name = 'learning/topic_detail.html'
 
@@ -134,96 +134,68 @@ class TopicDetailView(View):
         topic = get_object_or_404(
             Topic, slug=topic_slug, subject__slug=subject_slug
         )
-        # Get content versions sorted by user preference match score
-        content_versions = get_recommended_content_versions(request.user, topic, limit=5)
 
-        # Check if user already interacted with this topic
-        user_interactions = UserInteraction.objects.filter(
-            user=request.user, topic=topic
-        ).values_list('content_version_id', flat=True)
+        # Get the single next content version to show
+        current_content = get_next_content_for_topic(request.user, topic)
+
+        # Count how many styles the user has seen for this topic
+        seen_count = UserInteraction.objects.filter(
+            user=request.user, content_version__topic=topic
+        ).count()
 
         # Recommended videos for this topic
         recommended_videos = get_recommended_videos(request.user, limit=3, topic=topic)
 
-        # User preference profile (needed for "Best for you" badge)
+        # User preference profile
         pref, _ = UserPreference.objects.get_or_create(user=request.user)
 
-        context = {
-            'topic': topic,
-            'content_versions': content_versions,
-            'user_interacted_ids': list(user_interactions),
-            'recommended_videos': recommended_videos,
-            'pref': pref,
-            'selection_form': ContentSelectionForm(),
-        }
-        return render(request, self.template_name, context)
+        # Total content versions available for this topic
+        total_versions = topic.content_versions.count()
 
-    def post(self, request, subject_slug, topic_slug):
-        """Handle content version selection."""
-        topic = get_object_or_404(
-            Topic, slug=topic_slug, subject__slug=subject_slug
-        )
-        form = ContentSelectionForm(request.POST)
-        if form.is_valid():
-            cv_id = form.cleaned_data['content_version_id']
-            rating_str = form.cleaned_data.get('rating')
-            rating = int(rating_str) if rating_str else None
-
-            content_version = get_object_or_404(ContentVersion, id=cv_id, topic=topic)
-
-            # Create or update interaction
-            interaction, created = UserInteraction.objects.get_or_create(
+        # ── Find the next topic in this subject ──────────────────
+        seen_topic_ids = set(
+            UserInteraction.objects.filter(
                 user=request.user,
-                content_version=content_version,
-                defaults={'topic': topic, 'rating': rating}
-            )
-            if not created and rating:
-                interaction.rating = rating
-                interaction.save()
-
-            # Update user preference profile
-            pref, _ = UserPreference.objects.get_or_create(user=request.user)
-            pref.update_from_interaction(content_version, rating)
-
-            messages.success(
-                request,
-                f'✓ Preference updated — '
-                f'<strong>{pref.preferred_style.capitalize()}</strong> style noted!'
-            )
-
-            # ── Stay within the SAME subject ──────────────────────
-            # Find the next topic in this subject (by order), that the
-            # user hasn't visited yet.
-            seen_topic_ids = set(
-                UserInteraction.objects.filter(
-                    user=request.user,
-                    topic__subject=topic.subject
-                ).values_list('topic_id', flat=True)
-            )
-
+                topic__subject=topic.subject
+            ).values_list('topic_id', flat=True)
+        )
+        next_topic = (
+            topic.subject.topics
+            .filter(order__gt=topic.order)
+            .exclude(id__in=seen_topic_ids)
+            .order_by('order')
+            .first()
+        )
+        # Fallback: any next topic by order if all are seen
+        if not next_topic:
             next_topic = (
                 topic.subject.topics
                 .filter(order__gt=topic.order)
-                .exclude(id__in=seen_topic_ids)
                 .order_by('order')
                 .first()
             )
 
-            if next_topic:
-                # Go to next unvisited topic in same subject
-                return redirect(
-                    'topic_detail',
-                    subject_slug=subject_slug,
-                    topic_slug=next_topic.slug
-                )
-
-            # All topics in this subject done → go to subject topic list
-            messages.info(
-                request,
-                f'🎉 You have completed all topics in <strong>{topic.subject.name}</strong>!'
+        next_topic_url = ''
+        if next_topic:
+            from django.urls import reverse
+            next_topic_url = reverse(
+                'topic_detail',
+                kwargs={'subject_slug': subject_slug, 'topic_slug': next_topic.slug}
             )
 
-        return redirect('topic_list', subject_slug=subject_slug)
+        context = {
+            'topic': topic,
+            'current_content': current_content,
+            'exhausted': current_content is None and total_versions > 0,
+            'no_content': total_versions == 0,
+            'seen_count': seen_count,
+            'total_versions': total_versions,
+            'recommended_videos': recommended_videos,
+            'pref': pref,
+            'next_topic': next_topic,
+            'next_topic_url': next_topic_url,
+        }
+        return render(request, self.template_name, context)
 
 
 

@@ -13,123 +13,141 @@
   </div>
 
   <!-- Topic Header -->
-  <div class="row align-items-start mb-4 g-4 anim-fade-up">
-    <div class="col-lg-8">
+  <div class="seq-header anim-fade-up">
+    <div class="seq-header-left">
       <h1 class="page-title">{{ topic.title }}</h1>
-      <p class="page-subtitle">{{ topic.description|default:"Read each explanation style below and choose the one that helped you the most." }}</p>
+      <p class="page-subtitle">{{ topic.description|default:"Explore different explanation styles one at a time. Rate the ones that help, skip the ones that don't." }}</p>
     </div>
-    <div class="col-lg-4">
-      <div class="card" style="border-left:3px solid var(--primary);">
-        <div class="card-body" style="padding:var(--sp-4);">
-          <div style="font-size:.8rem;font-weight:700;color:var(--primary);margin-bottom:var(--sp-2);">
-            <i class="bi bi-info-circle me-1"></i>How to use this page
-          </div>
-          <ol style="font-size:.8125rem;color:var(--text-muted);padding-left:1.1rem;margin:0;line-height:2;">
-            <li>Read <strong style="color:var(--text);">all {{ content_versions|length }} explanation styles</strong> below</li>
-            <li>Click <strong style="color:var(--text);">"This helped me most"</strong> on the best one</li>
-            <li>Optionally give a star rating</li>
-            <li>Future topics will prioritize your style</li>
-          </ol>
+    <div class="seq-header-right">
+      <div class="seq-how-card">
+        <div class="seq-how-header">
+          <i class="bi bi-lightbulb"></i> How it works
         </div>
+        <ol class="seq-how-list">
+          <li>We show you <strong>one explanation style</strong> at a time</li>
+          <li>If it helps, click <strong>"Rate it"</strong> and give stars</li>
+          <li>If not, click <strong>"Not Interested"</strong> for the next style</li>
+          <li>Your choices <strong>personalize future topics</strong></li>
+        </ol>
       </div>
     </div>
   </div>
 
-  <!-- Info banner explaining why all versions are shown -->
-  <div style="background:var(--primary-l);border:1px solid var(--primary-m);border-radius:var(--r-lg);padding:var(--sp-4) var(--sp-5);margin-bottom:var(--sp-6);display:flex;align-items:center;gap:var(--sp-3);" class="anim-fade-up">
-    <i class="bi bi-stars" style="color:var(--primary);font-size:1.2rem;flex-shrink:0;"></i>
-    <div>
-      <strong style="color:var(--primary);font-size:.875rem;">All explanation styles are shown intentionally.</strong>
-      <span style="color:var(--text-secondary);font-size:.8125rem;margin-left:4px;">
-        Read each one, then select whichever explained it best. The system uses your choice to personalise future recommendations.
-        {% if pref.interaction_count > 0 %}The <strong>{{ pref.preferred_style|title }}</strong> style card is ranked first based on your existing preference.{% endif %}
-      </span>
+  <!-- Progress indicator -->
+  {% if not no_content %}
+  <div class="seq-progress anim-fade-up" id="seq-progress">
+    <div class="seq-progress-info">
+      <div class="seq-progress-label">
+        <i class="bi bi-layers"></i>
+        <span>Explanation style <strong id="progress-current">{{ seen_count|add:1 }}</strong> of <strong>{{ total_versions }}</strong></span>
+      </div>
+      <div class="seq-progress-pct" id="progress-pct">{% widthratio seen_count total_versions 100 %}%</div>
+    </div>
+    <div class="seq-progress-bar">
+      <div class="seq-progress-fill" id="progress-fill" data-width="{% widthratio seen_count total_versions 100 %}"></div>
     </div>
   </div>
+  {% endif %}
 
-  <!-- Explanation Cards -->
-  <div class="section anim-fade-up">
-    <div class="section-header">
-      <div class="section-title">
-        <span class="icon-dot"><i class="bi bi-collection"></i></span>
-        Explanation Styles
-        <span class="badge-count ms-1">{{ content_versions|length }}</span>
-      </div>
-      {% if user_interacted_ids %}
-      <span class="style-chip chip-example"><i class="bi bi-check2"></i>{{ user_interacted_ids|length }} selected</span>
-      {% endif %}
-    </div>
+  <!-- ═══ SINGLE CONTENT CARD AREA ═══ -->
+  <div class="seq-main anim-fade-up">
+    <div id="content-card-wrapper">
 
-    {% if content_versions %}
-    <div class="row g-4">
-      {% for version in content_versions %}
-      <div class="col-lg-6 anim-fade-up" style="animation-delay:{{ forloop.counter0 }}0ms;">
-        <div class="content-card h-100 {% if version.id in user_interacted_ids %}is-selected{% endif %}" id="cc-{{ version.id }}">
+      {% if no_content %}
+        <!-- No content versions at all -->
+        <div class="card"><div class="empty-state">
+          <div class="empty-icon"><i class="bi bi-file-earmark-x"></i></div>
+          <div class="empty-title">No explanations yet</div>
+          <p class="empty-desc">Content will appear here once added by the admin.</p>
+        </div></div>
 
-          <!-- Card header: style badge + selected indicator -->
-          <div class="content-card-header">
-            <span class="style-chip chip-{{ version.style_type }}">
-              <i class="{{ version.get_style_icon }}"></i>
-              {{ version.get_style_type_display }}
+      {% elif exhausted %}
+        <!-- All styles exhausted -->
+        <div class="seq-completion-card" id="completion-card">
+          <div class="seq-completion-icon"><i class="bi bi-trophy"></i></div>
+          <h3 class="seq-completion-title">All Styles Explored! 🎉</h3>
+          <p class="seq-completion-desc">
+            You've explored all explanation styles for <strong>{{ topic.title }}</strong>.
+            Your learning profile has been updated!
+          </p>
+          <div class="seq-completion-actions">
+            {% if next_topic %}
+            <a href="{{ next_topic_url }}" class="btn-primary">
+              <i class="bi bi-arrow-right"></i>Next Topic: {{ next_topic.title|truncatechars:30 }}
+            </a>
+            {% endif %}
+            <a href="{% url 'dashboard' %}" class="btn-ghost">
+              <i class="bi bi-grid-1x2"></i>Dashboard
+            </a>
+          </div>
+        </div>
+
+      {% elif current_content %}
+        <!-- ══ Single content card ══ -->
+        <div class="seq-card" id="seq-card">
+          <!-- Card top accent bar -->
+          <div class="seq-card-accent accent-{{ current_content.style_type }}"></div>
+
+          <!-- Card header -->
+          <div class="seq-card-head">
+            <span class="style-chip chip-{{ current_content.style_type }}">
+              <i class="{{ current_content.get_style_icon }}"></i>
+              {{ current_content.get_style_type_display }}
             </span>
-            <div class="d-flex align-items-center gap-2">
-              {% if forloop.first and pref.interaction_count > 0 %}
-              <span style="font-size:.7rem;font-weight:600;background:var(--primary-l);color:var(--primary);padding:3px 9px;border-radius:var(--r-full);border:1px solid var(--primary-m);">
-                <i class="bi bi-arrow-up"></i> Best for you
-              </span>
-              {% endif %}
-              {% if version.id in user_interacted_ids %}
-              <span class="style-chip chip-example"><i class="bi bi-check2-circle"></i>Selected</span>
-              {% endif %}
-            </div>
+            {% if pref.interaction_count > 0 %}
+            <span class="seq-badge-priority">
+              <i class="bi bi-stars"></i> Personalized for you
+            </span>
+            {% else %}
+            <span class="seq-badge-default">
+              <i class="bi bi-shuffle"></i> Default order
+            </span>
+            {% endif %}
           </div>
 
           <!-- Title -->
-          <h5 style="font-size:.9375rem;font-weight:700;margin-bottom:var(--sp-4);color:var(--text);">{{ version.title }}</h5>
+          <h3 class="seq-card-title">{{ current_content.title }}</h3>
 
-          <!-- Content body — full text always visible -->
-          <div class="content-body">{{ version.content }}</div>
+          <!-- Content body -->
+          <div class="seq-card-body">{{ current_content.content|linebreaks }}</div>
 
-          <!-- Selection Form -->
-          <form method="post" style="margin-top:auto;">
-            {% csrf_token %}
-            <input type="hidden" name="content_version_id" value="{{ version.id }}"/>
-            <div class="d-flex align-items-center gap-2">
-              {% if version.id in user_interacted_ids %}
-              <button type="submit" class="btn-success flex-grow-1">
-                <i class="bi bi-check2-circle"></i>Re-select this explanation
-              </button>
-              {% else %}
-              <button type="submit" class="btn-primary flex-grow-1 btn-select-content" data-card-id="{{ version.id }}">
-                <i class="bi bi-hand-thumbs-up"></i>This helped me most
-              </button>
-              {% endif %}
-              <select name="rating" class="form-input form-select" style="width:auto;padding:9px 10px;font-size:.8rem;min-width:90px;">
-                <option value="">Rate</option>
-                <option value="5">⭐⭐⭐⭐⭐</option>
-                <option value="4">⭐⭐⭐⭐</option>
-                <option value="3">⭐⭐⭐</option>
-                <option value="2">⭐⭐</option>
-                <option value="1">⭐</option>
-              </select>
+          <!-- Action buttons -->
+          <div class="seq-actions" id="seq-actions">
+            <button class="seq-btn-rate" id="btn-rate">
+              <i class="bi bi-star-fill"></i>
+              <span>This helped me — Rate it</span>
+            </button>
+            <button class="seq-btn-skip" id="btn-skip">
+              <i class="bi bi-x-lg"></i>
+              <span>Not Interested</span>
+            </button>
+          </div>
+
+          <!-- Star rating section (hidden initially) -->
+          <div class="seq-star-section" id="star-rating" style="display:none;">
+            <p class="seq-star-prompt">How helpful was this explanation?</p>
+            <div class="seq-stars" id="star-container">
+              <button class="seq-star-btn" data-rating="1" title="1 star"><i class="bi bi-star"></i></button>
+              <button class="seq-star-btn" data-rating="2" title="2 stars"><i class="bi bi-star"></i></button>
+              <button class="seq-star-btn" data-rating="3" title="3 stars"><i class="bi bi-star"></i></button>
+              <button class="seq-star-btn" data-rating="4" title="4 stars"><i class="bi bi-star"></i></button>
+              <button class="seq-star-btn" data-rating="5" title="5 stars"><i class="bi bi-star"></i></button>
             </div>
-          </form>
+            <button class="seq-btn-submit" id="btn-submit-rating" disabled>
+              <i class="bi bi-check2-circle"></i>Submit Rating
+            </button>
+          </div>
         </div>
-      </div>
-      {% endfor %}
+      {% endif %}
+
+      <!-- Feedback message area -->
+      <div id="feedback-message" style="display:none;"></div>
     </div>
-    {% else %}
-    <div class="card"><div class="empty-state">
-      <div class="empty-icon"><i class="bi bi-file-earmark-x"></i></div>
-      <div class="empty-title">No explanations yet</div>
-      <p class="empty-desc">Content will appear here once added by the admin.</p>
-    </div></div>
-    {% endif %}
   </div>
 
   <!-- Recommended Videos for This Topic -->
   {% if recommended_videos %}
-  <div class="section anim-fade-up">
+  <div class="section anim-fade-up" style="margin-top:var(--sp-7);">
     <div class="section-header">
       <div class="section-title"><span class="icon-dot"><i class="bi bi-play-circle"></i></span>Recommended Videos</div>
       <a href="{% url 'video_recommendations' %}" class="btn-ghost btn-sm">All videos</a>
@@ -157,10 +175,31 @@
   {% endif %}
 
   <!-- Navigation -->
-  <div class="d-flex justify-content-between align-items-center mt-4">
+  <div class="seq-nav-footer anim-fade-up">
     <a href="{% url 'topic_list' topic.subject.slug %}" class="btn-secondary"><i class="bi bi-arrow-left"></i>Back to {{ topic.subject.name }}</a>
-    <a href="{% url 'dashboard' %}" class="btn-ghost"><i class="bi bi-grid-1x2"></i>Dashboard</a>
+    <div class="seq-nav-right">
+      {% if next_topic %}
+      <a href="{{ next_topic_url }}" class="btn-ghost" title="Skip to next topic">
+        <i class="bi bi-skip-forward"></i>{{ next_topic.title|truncatechars:25 }}
+      </a>
+      {% endif %}
+      <a href="{% url 'dashboard' %}" class="btn-ghost"><i class="bi bi-grid-1x2"></i>Dashboard</a>
+    </div>
   </div>
 
 </div>
+
+<!-- Inject data for JS -->
+<script>
+  window.PERSONA_LEARN = {
+    topicId: {{ topic.id }},
+    currentContentId: {% if current_content %}{{ current_content.id }}{% else %}null{% endif %},
+    seenCount: {{ seen_count }},
+    totalVersions: {{ total_versions }},
+    exhausted: {% if exhausted %}true{% else %}false{% endif %},
+    nextTopicUrl: '{{ next_topic_url|default:"" }}',
+    nextTopicTitle: '{{ next_topic.title|default:""|truncatechars:30 }}',
+    subjectListUrl: '{% url "topic_list" topic.subject.slug %}',
+  };
+</script>
 {% endblock %}

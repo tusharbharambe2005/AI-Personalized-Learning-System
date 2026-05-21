@@ -178,3 +178,38 @@ class PasswordUpdateView(View):
                 for error in errors:
                     messages.error(request, f'{error}')
         return redirect('profile' + '?tab=password')
+
+
+@login_required
+def upgrade_page(request):
+    return render(request, 'accounts/upgrade.html')
+
+
+@login_required
+def activate_pro_request(request):
+    if request.method == 'POST':
+        from django.utils import timezone
+        
+        VALID_COUPON = "TUSHAR123"
+        coupon = request.POST.get('coupon', '').strip()
+        profile = request.user.profile
+
+        if profile.is_pro:
+            messages.info(request, "You are already a Pro member.")
+            return redirect('dashboard')
+
+        if profile.pro_requested:
+            messages.warning(request, "Your request is already pending approval.")
+            return redirect('upgrade')
+
+        if coupon == VALID_COUPON:
+            profile.pro_requested = True
+            profile.pro_request_at = timezone.now()
+            profile.pro_coupon_used = coupon
+            profile.save()
+            messages.success(request, "✅ Valid coupon! Your Pro request has been sent to Admin for approval.")
+            return redirect('dashboard')
+        else:
+            messages.error(request, "❌ Invalid coupon code. Please try again.")
+            return redirect('upgrade')
+    return redirect('upgrade')

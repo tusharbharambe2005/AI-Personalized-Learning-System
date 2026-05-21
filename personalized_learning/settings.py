@@ -33,6 +33,7 @@ INSTALLED_APPS = [
     'accounts',
     'learning',
     'recommendations',
+    'chatbot',
 ]
 
 MIDDLEWARE = [
@@ -132,3 +133,6 @@ REST_FRAMEWORK = {
         'rest_framework.renderers.BrowsableAPIRenderer',
     ],
 }
+
+# Gemini API Configuration
+GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY', 'your-gemini-api-key-here')

@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block title %}Upgrade to Pro — PersonaLearn{% endblock %}
+
+{% block content %}
+<div class="container py-5" style="max-width: 600px;">
+    <div class="text-center mb-5">
+        <h1 class="display-5 fw-bold text-gradient">Upgrade to Pro ⚡</h1>
+        <p class="lead text-secondary">Unlock the full power of personalized AI learning.</p>
+    </div>
+
+    <div class="card seq-card border-warning mb-4">
+        <div class="card-body p-4">
+            <h4 class="mb-4">🌟 Pro Features Include:</h4>
+            <ul class="list-unstyled">
+                <li class="mb-3"><i class="bi bi-robot text-primary me-2 fs-5"></i> <strong>Personalized AI Chatbot</strong>: Your own tutor tuned specifically to your learning style.</li>
+                <li class="mb-3"><i class="bi bi-infinity text-primary me-2 fs-5"></i> <strong>Unlimited Access</strong>: Generate limitless custom examples and explanations.</li>
+                <li class="mb-3"><i class="bi bi-stars text-primary me-2 fs-5"></i> <strong>Priority Support</strong>: Direct access to admin assistance.</li>
+            </ul>
+        </div>
+    </div>
+
+    {% with profile=request.user.profile %}
+        {% if profile.is_pro %}
+            <div class="alert alert-success text-center py-4">
+                <h4 class="mb-3">✅ You are already a Pro member!</h4>
+                <p class="mb-0">Enjoy your AI Chatbot and all Pro features.</p>
+                <a href="{% url 'chatbot' %}" class="btn btn-primary mt-3">Open AI Chatbot</a>
+            </div>
+        {% elif profile.pro_requested %}
+            <div class="alert alert-warning text-center py-4">
+                <h4 class="mb-3">⏳ Request Pending Approval</h4>
+                <p class="mb-0">Your Pro request (submitted {{ profile.pro_request_at|date:"d M Y" }}) is pending admin approval.</p>
+                <p class="small mt-2 text-muted">You will be notified once activated.</p>
+            </div>
+        {% else %}
+            <div class="card seq-card">
+                <div class="card-body p-4">
+                    <h5 class="mb-3">Activate via Coupon</h5>
+                    <form method="POST" action="{% url 'upgrade_activate' %}">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <input type="text" name="coupon" class="form-control form-control-lg" placeholder="Enter coupon code (e.g. TUSHAR123)" required>
+                        </div>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-warning btn-lg fw-bold text-dark">
+                                Request Pro Upgrade ⚡
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        {% endif %}
+    {% endwith %}
+</div>
+{% endblock %}

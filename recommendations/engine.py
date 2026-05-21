@@ -5,6 +5,58 @@ No AI APIs used. Pure weighted score matching.
 from learning.models import Topic, ContentVersion, VideoResource
 from recommendations.models import UserPreference, UserInteraction
 
+# Fixed default priority order for first-time visitors
+DEFAULT_ORDER = ['analogy', 'diagram', 'example', 'logic', 'theory']
+
+
+def get_priority_order(user_preference):
+    """
+    Return learning styles sorted by descending user preference score.
+    Falls back to DEFAULT_ORDER if no history exists (total == 0).
+    """
+    total = sum(
+        getattr(user_preference, f'{s}_preference')
+        for s in DEFAULT_ORDER
+    )
+    if total == 0:
+        return list(DEFAULT_ORDER)  # No history → use default
+    return sorted(
+        DEFAULT_ORDER,
+        key=lambda s: getattr(user_preference, f'{s}_preference'),
+        reverse=True
+    )
+
+
+def get_next_content_for_topic(user, topic):
+    """
+    Returns the next ContentVersion to show for a topic based on:
+    - User's preference priority order (or DEFAULT_ORDER if no history)
+    - Excludes styles already rated or skipped for this exact topic
+    Returns None if all 5 styles are exhausted for this topic.
+    """
+    # Get styles already seen (rated or skipped) for this specific topic
+    seen_styles = set(
+        UserInteraction.objects.filter(
+            user=user, content_version__topic=topic
+        ).values_list('content_version__style_type', flat=True)
+    )
+
+    # Get priority order
+    try:
+        pref = UserPreference.objects.get(user=user)
+    except UserPreference.DoesNotExist:
+        pref = UserPreference.objects.create(user=user)
+
+    order = get_priority_order(pref)
+
+    # Return first unseen content version in priority order
+    for style in order:
+        if style not in seen_styles:
+            cv = topic.content_versions.filter(style_type=style).first()
+            if cv:
+                return cv
+    return None  # All exhausted
+
 
 def compute_match_score(user_pref: UserPreference, item) -> float:
     """

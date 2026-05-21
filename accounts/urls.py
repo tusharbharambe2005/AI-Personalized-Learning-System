@@ -12,4 +12,8 @@ urlpatterns = [
     path('profile/update/', views.ProfileUpdateView.as_view(), name='profile_update'),
     path('profile/avatar/', views.AvatarUpdateView.as_view(), name='avatar_update'),
     path('profile/password/', views.PasswordUpdateView.as_view(), name='password_update'),
+    
+    # Pro Upgrade URLs
+    path('upgrade/', views.upgrade_page, name='upgrade'),
+    path('upgrade/activate/', views.activate_pro_request, name='upgrade_activate'),
 ]

@@ -1,0 +1,320 @@
+{% extends "base.html" %}
+
+{% block title %}AI Tutor — PersonaLearn{% endblock %}
+
+{% block extra_head %}
+<style>
+/* Chat Interface Styling */
+.chat-container {
+    max-width: 900px;
+    margin: 0 auto;
+    height: calc(100vh - 80px - 76px); /* Viewport - Navbar - Input Area */
+    display: flex;
+    flex-direction: column;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--r-xl);
+    overflow: hidden;
+    box-shadow: 0 4px 24px rgba(15,23,42,0.06);
+}
+
+.chat-header {
+    padding: var(--sp-4) var(--sp-6);
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.chat-messages {
+    flex-grow: 1;
+    overflow-y: auto;
+    padding: var(--sp-6);
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-4);
+    background: #f8fafc;
+}
+
+.chat-bubble {
+    max-width: 75%;
+    padding: var(--sp-3) var(--sp-4);
+    border-radius: var(--r-lg);
+    line-height: 1.6;
+    font-size: 0.95rem;
+}
+
+.chat-bubble.user {
+    align-self: flex-end;
+    background: var(--primary);
+    color: white;
+    border-bottom-right-radius: 4px;
+}
+
+.chat-bubble.model {
+    align-self: flex-start;
+    background: white;
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-bottom-left-radius: 4px;
+    box-shadow: 0 2px 8px rgba(15,23,42,0.04);
+}
+
+/* Format markdown-like text in model bubbles */
+.chat-bubble.model p { margin-bottom: 0.5rem; }
+.chat-bubble.model p:last-child { margin-bottom: 0; }
+.chat-bubble.model pre { background: #f1f5f9; padding: 10px; border-radius: 4px; overflow-x: auto; font-size: 0.85rem; }
+.chat-bubble.model code { font-family: monospace; background: #f1f5f9; padding: 2px 4px; border-radius: 3px; font-size: 0.9em; }
+
+.chat-input-area {
+    padding: var(--sp-4) var(--sp-6);
+    background: white;
+    border-top: 1px solid var(--border);
+    display: flex;
+    gap: var(--sp-3);
+    align-items: flex-end;
+}
+
+.chat-input {
+    flex-grow: 1;
+    resize: none;
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
+    padding: 12px 16px;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    max-height: 150px;
+    overflow-y: auto;
+    transition: border-color 0.2s;
+}
+
+.chat-input:focus {
+    outline: none;
+    border-color: var(--primary);
+}
+
+.send-btn {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: var(--primary);
+    color: white;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: transform 0.2s, background 0.2s;
+    flex-shrink: 0;
+}
+
+.send-btn:hover {
+    background: #4338ca;
+    transform: scale(1.05);
+}
+
+.send-btn:disabled {
+    background: #cbd5e1;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Typing Indicator */
+.typing-indicator {
+    display: none;
+    align-self: flex-start;
+    background: white;
+    padding: 12px 16px;
+    border-radius: var(--r-lg);
+    border-bottom-left-radius: 4px;
+    border: 1px solid var(--border);
+    box-shadow: 0 2px 8px rgba(15,23,42,0.04);
+}
+
+.typing-dot {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--text-light);
+    margin: 0 2px;
+    animation: typing 1.4s infinite ease-in-out both;
+}
+
+.typing-dot:nth-child(1) { animation-delay: -0.32s; }
+.typing-dot:nth-child(2) { animation-delay: -0.16s; }
+
+@keyframes typing {
+    0%, 80%, 100% { transform: scale(0); }
+    40% { transform: scale(1); }
+}
+
+@media (max-width: 768px) {
+    .chat-container {
+        height: calc(100vh - 64px);
+        border-radius: 0;
+        border: none;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4 h-100">
+    <div class="chat-container">
+        
+        <div class="chat-header">
+            <div class="d-flex align-items-center gap-3">
+                <div style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #e0e7ff, #c7d2fe); display: flex; align-items: center; justify-content: center; font-size: 1.2rem;">
+                    🤖
+                </div>
+                <div>
+                    <h5 class="mb-0 fw-bold">PersonaLearn AI</h5>
+                    <span class="badge bg-white text-dark border shadow-sm mt-1" style="font-size: 0.75rem;">
+                        {{ learner_label }}
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <div class="chat-messages" id="chat-messages">
+            <div class="chat-bubble model">
+                Hello <strong>{{ request.user.first_name|default:request.user.username }}</strong>! 👋<br><br>
+                I am your personalized AI tutor. I've tailored my teaching style specifically for you. What would you like to learn today?
+            </div>
+            
+            <div class="typing-indicator" id="typing-indicator">
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+            </div>
+        </div>
+
+        <div class="chat-input-area">
+            <textarea 
+                id="chat-input" 
+                class="chat-input" 
+                rows="1" 
+                placeholder="Ask me anything... (Shift+Enter for new line)"
+            ></textarea>
+            <button class="send-btn" id="send-btn" onclick="sendMessage()">
+                <i class="bi bi-send-fill"></i>
+            </button>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let history = [];  // [{role: 'user'|'model', text: '...'}]
+    const chatMessages = document.getElementById('chat-messages');
+    const chatInput = document.getElementById('chat-input');
+    const sendBtn = document.getElementById('send-btn');
+    const typingIndicator = document.getElementById('typing-indicator');
+
+    // Auto-resize textarea
+    chatInput.addEventListener('input', function() {
+        this.style.height = 'auto';
+        this.style.height = (this.scrollHeight < 150 ? this.scrollHeight : 150) + 'px';
+    });
+
+    // Handle Enter to send
+    chatInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            sendMessage();
+        }
+    });
+
+    function getCsrfToken() {
+        return document.cookie.split('; ')
+            .find(row => row.startsWith('csrftoken='))
+            ?.split('=')[1] || '';
+    }
+
+    function appendBubble(role, text) {
+        const bubble = document.createElement('div');
+        bubble.className = `chat-bubble ${role}`;
+        
+        // Simple markdown parsing for the model (bold, newlines)
+        let formattedText = text
+            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+            .replace(/\n/g, '<br>');
+            
+        bubble.innerHTML = formattedText;
+        
+        // Insert before typing indicator
+        chatMessages.insertBefore(bubble, typingIndicator);
+        scrollToBottom();
+    }
+
+    function scrollToBottom() {
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    function showTypingIndicator() {
+        typingIndicator.style.display = 'block';
+        sendBtn.disabled = true;
+        scrollToBottom();
+    }
+
+    function hideTypingIndicator() {
+        typingIndicator.style.display = 'none';
+        sendBtn.disabled = false;
+    }
+
+    async function sendMessage() {
+        const message = chatInput.value.trim();
+        if (!message) return;
+
+        // 1. Add User Message to UI
+        appendBubble('user', message);
+        
+        // 2. Add to history array
+        history.push({ role: 'user', text: message });
+        
+        // 3. Reset input
+        chatInput.value = '';
+        chatInput.style.height = 'auto';
+        
+        // 4. Show typing state
+        showTypingIndicator();
+
+        try {
+            const res = await fetch('/chatbot/api/', {
+                method:  'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken':  getCsrfToken()
+                },
+                // Send history WITHOUT the current message since we're passing it separately (or let backend append)
+                // Actually the backend prompt says: user_message = data.get('message'), history = data.get('history')
+                // So send history up to the previous turn
+                body: JSON.stringify({
+                    message: message,
+                    history: history.slice(0, -1)
+                })
+            });
+
+            const data = await res.json();
+            hideTypingIndicator();
+            
+            if (data.error) {
+                appendBubble('model', `⚠️ Error: ${data.error}`);
+            } else {
+                appendBubble('model', data.reply);
+                history.push({ role: 'model', text: data.reply });
+            }
+
+        } catch (err) {
+            console.error(err);
+            hideTypingIndicator();
+            appendBubble('model', '⚠️ Something went wrong. Please check your connection or API key and try again.');
+        }
+    }
+</script>
+{% endblock %}
