@@ -25,7 +25,7 @@ PersonaLearn solves a core educational challenge: the same topic explained in di
 | Content Versions | 5 explanation styles per topic with style scores |
 | Video Resources | YouTube videos tagged with style scores |
 | Preference Engine | Cumulative weighted preference profile per user |
-| Recommendation | Rule-based match scoring — no AI APIs |
+| Recommendation | Rule-based match scoring|
 | Dashboard | Radar chart, progress %, recommended topics & videos |
 | History | Full interaction log with style badges & star ratings |
 | REST API | DRF endpoints for all major resources |
