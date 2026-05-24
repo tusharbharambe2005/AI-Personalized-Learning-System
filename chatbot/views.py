@@ -10,7 +10,7 @@ from django.http import JsonResponse
 from recommendations.chatbot_engine import build_system_prompt, get_top_style_label
 
 try:
-    if HAS_GENAI:
+    if HAS_GENAI and settings.GEMINI_API_KEY:
         genai.configure(api_key=settings.GEMINI_API_KEY)
 except Exception:
     pass
@@ -45,6 +45,11 @@ def chatbot_api(request):
 
     if not HAS_GENAI:
         return JsonResponse({'error': 'Gemini SDK is not installed in this environment.'}, status=500)
+
+    if not settings.GEMINI_API_KEY:
+        return JsonResponse({
+            'error': 'Gemini API key is not configured. Set GEMINI_API_KEY or GOOGLE_API_KEY in your environment or .env file.'
+        }, status=500)
 
     try:
         data = json.loads(request.body)

@@ -7,6 +7,26 @@ import os
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+
+def _load_env_file(env_path):
+    if not env_path.exists():
+        return
+
+    for raw_line in env_path.read_text().splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith('#'):
+            continue
+        if line.startswith('export '):
+            line = line[len('export '):]
+        if '=' not in line:
+            continue
+
+        key, value = line.split('=', 1)
+        os.environ.setdefault(key.strip(), value.strip().strip('"').strip("'"))
+
+
+_load_env_file(BASE_DIR / '.env')
+
 # ── Security (use env vars in production) ──────────────────────
 SECRET_KEY = os.environ.get(
     'DJANGO_SECRET_KEY',
@@ -135,4 +155,6 @@ REST_FRAMEWORK = {
 }
 
 # Gemini API Configuration
-GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY', '')
+GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY') or os.environ.get('GOOGLE_API_KEY', '')
+if GEMINI_API_KEY:
+    os.environ.setdefault('GOOGLE_API_KEY', GEMINI_API_KEY)
