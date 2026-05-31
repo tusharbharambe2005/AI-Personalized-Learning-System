@@ -32,6 +32,7 @@
     overflow: hidden;
   }
   #page-loader.pl-out { opacity: 0; visibility: hidden; pointer-events: none; }
+  html.loader-seen #page-loader { display: none !important; }
 
   /* Particle dots */
   .pl-particles { position: absolute; inset: 0; pointer-events: none; }
@@ -145,6 +146,12 @@
   </style>
 </head>
 <body>
+<script>
+  // Only show the loader on the very first page load of the session
+  if (sessionStorage.getItem('pl_loader_shown')) {
+    document.documentElement.classList.add('loader-seen');
+  }
+</script>
 
 <!-- ═══════════════════ GLOBAL PAGE LOADER ═══════════════════ -->
 <div id="page-loader" role="status" aria-label="Loading PersonaLearn">
@@ -187,10 +194,19 @@
 <script>
   // Hide loader as soon as page finishes loading
   (function() {
+    // If already seen, skip all animations and timeouts
+    if (sessionStorage.getItem('pl_loader_shown')) {
+      return; 
+    }
+    
+    // Mark as seen for future pages in this session
+    sessionStorage.setItem('pl_loader_shown', 'true');
+
     function hideLoader() {
       var l = document.getElementById('page-loader');
       if (l) l.classList.add('pl-out');
     }
+    
     if (document.readyState === 'complete') {
       setTimeout(hideLoader, 2500);
     } else {
@@ -198,8 +214,8 @@
         setTimeout(hideLoader, 2500);
       });
     }
-    // Safety fallback: hide after 3.5s no matter what
-    setTimeout(hideLoader, 3500);
+    // Safety fallback: hide after 4.5s no matter what
+    setTimeout(hideLoader, 4500);
   })();
 </script>
 
