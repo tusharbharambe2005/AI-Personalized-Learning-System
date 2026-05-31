@@ -551,30 +551,58 @@
 .ch-menu-btn:hover { background: var(--primary-l); color: var(--primary); }
 
 /* ── Responsive ── */
+/* ── Responsive Mobile Power-Up ── */
 @media (max-width: 768px) {
-  .chatbot-page  { padding: 0; height: calc(100vh - 64px); }
-  .chat-shell    { border-radius: 0; border: none; }
+  /* Fix iOS Safari 100vh issue by using 100dvh */
+  .chatbot-page  { padding: 0; height: calc(100dvh - 64px); margin-bottom: 0; }
+  .chat-shell    { border-radius: 0; border: none; box-shadow: none; display: flex; flex-direction: column; }
   .chat-sidebar  { display: none; }
   .ch-menu-btn   { display: flex; }
   .ch-badge      { display: none; }
 
-  .chat-header   { padding: 12px 16px; }
+  /* Native app-like Header */
+  .chat-header   { 
+    padding: 12px 16px; 
+    border-bottom: 1px solid var(--border); 
+    box-shadow: 0 4px 16px rgba(107,33,168,0.04); 
+    z-index: 10;
+  }
   .ch-avatar     { width: 38px; height: 38px; font-size: 1rem; }
-  .ch-name       { font-size: .875rem; }
-  .ch-status     { font-size: .7rem; }
+  .ch-name       { font-size: .95rem; font-weight: 700; letter-spacing: -0.2px; }
+  .ch-status     { font-size: .75rem; }
 
-  .chat-messages { padding: 16px 12px; gap: 14px; }
-  .cm-bubble     { max-width: 90%; font-size: .875rem; }
-  .cm-avatar     { width: 28px; height: 28px; font-size: .78rem; }
+  /* Message Area Spacing */
+  .chat-messages { padding: 20px 16px 24px; gap: 18px; flex: 1; }
+  .cm-row        { gap: 8px; }
+  .cm-bubble     { max-width: 92%; font-size: .95rem; padding: 12px 16px; border-radius: 18px 18px 18px 4px; }
+  .cm-row.user .cm-bubble { border-radius: 18px 18px 4px 18px; }
+  .cm-avatar     { width: 28px; height: 28px; font-size: .75rem; margin-bottom: 2px; }
+  .cm-meta       { font-size: .7rem; margin-top: 4px; }
 
-  .chat-input-area { padding: 10px 12px 14px; }
-  .chat-input-wrap { padding: 5px 5px 5px 14px; }
-  .chat-textarea   { font-size: .875rem; }
-  .chat-send-btn   { width: 38px; height: 38px; }
+  /* Native Bottom Input Area (Notch safe) */
+  .chat-input-area { 
+    padding: 12px 16px calc(14px + env(safe-area-inset-bottom, 0px)); 
+    background: var(--surface); 
+    box-shadow: 0 -4px 24px rgba(107,33,168,0.06); 
+    z-index: 10;
+    border-top: 1px solid var(--border);
+  }
+  .chat-input-wrap { padding: 6px 6px 6px 16px; border-radius: 28px; }
+  .chat-textarea   { font-size: .95rem; min-height: 24px; padding: 8px 0; }
+  .chat-send-btn   { width: 42px; height: 42px; border-radius: 24px; font-size: 1.1rem; }
   .ci-shortcut     { display: none; }
+  .ci-hint         { font-size: 0.75rem; font-weight: 500; }
 
-  .cm-chips { flex-direction: column; }
-  .cm-chip  { font-size: .72rem; }
+  /* Tap-friendly Chips */
+  .cm-chips { flex-direction: column; gap: 10px; margin-top: 16px; }
+  .cm-chip  { 
+    font-size: .88rem; 
+    padding: 10px 18px; 
+    width: 100%; 
+    justify-content: flex-start; 
+    text-align: left; 
+    border-radius: 12px;
+  }
 }
 </style>
 {% endblock %}
