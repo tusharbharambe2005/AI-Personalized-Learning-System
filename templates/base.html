@@ -18,8 +18,190 @@
   <!-- Custom -->
   <link rel="stylesheet" href="/static/css/style.css"/>
   {% block extra_head %}{% endblock %}
+  <style>
+  /* ═══════════════════════════════════════
+     GLOBAL PAGE LOADER — PersonaLearn
+  ═══════════════════════════════════════ */
+  #page-loader {
+    position: fixed; inset: 0; z-index: 99999;
+    background: #fcfbf8;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 0;
+    transition: opacity .55s ease, visibility .55s ease;
+    overflow: hidden;
+  }
+  #page-loader.pl-out { opacity: 0; visibility: hidden; pointer-events: none; }
+
+  /* Particle dots */
+  .pl-particles { position: absolute; inset: 0; pointer-events: none; }
+  .pl-p {
+    position: absolute; border-radius: 50%;
+    background: linear-gradient(135deg, #6b21a8, #b45309);
+    opacity: 0;
+    animation: plFloat var(--dur, 4s) var(--delay, 0s) infinite ease-in-out;
+  }
+  @keyframes plFloat {
+    0%   { opacity: 0; transform: translateY(100px) scale(0); }
+    20%  { opacity: .18; }
+    80%  { opacity: .12; }
+    100% { opacity: 0; transform: translateY(-120px) scale(1.2); }
+  }
+
+  /* Center card */
+  .pl-card {
+    display: flex; flex-direction: column;
+    align-items: center; gap: 28px;
+    animation: plCardIn .7s cubic-bezier(.16,1,.3,1) both;
+    position: relative; z-index: 1;
+  }
+  @keyframes plCardIn {
+    from { opacity: 0; transform: translateY(24px) scale(.94); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  /* Logo mark */
+  .pl-logo-wrap {
+    position: relative;
+    width: 84px; height: 84px;
+  }
+  .pl-logo-ring {
+    position: absolute; inset: -6px; border-radius: 50%;
+    border: 2px solid transparent;
+    border-top-color: #6b21a8;
+    border-right-color: #b45309;
+    animation: plSpin 1.4s linear infinite;
+  }
+  @keyframes plSpin { to { transform: rotate(360deg); } }
+  .pl-logo-inner {
+    width: 84px; height: 84px; border-radius: 24px;
+    background: linear-gradient(135deg, #6b21a8, #b45309);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 2.4rem;
+    box-shadow: 0 12px 32px rgba(107,33,168,0.28);
+    animation: plPulse 2s ease-in-out infinite;
+  }
+  @keyframes plPulse {
+    0%,100% { box-shadow: 0 12px 32px rgba(107,33,168,0.28); }
+    50%     { box-shadow: 0 16px 40px rgba(107,33,168,0.44); }
+  }
+
+  /* Brand name */
+  .pl-brand {
+    text-align: center;
+    animation: plCardIn .7s .1s cubic-bezier(.16,1,.3,1) both;
+  }
+  .pl-brand-name {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 1.75rem; font-weight: 700;
+    color: #1e1b4b; letter-spacing: -.5px;
+    line-height: 1;
+  }
+  .pl-brand-name span { color: #6b21a8; }
+  .pl-brand-tag {
+    font-family: 'Inter', sans-serif;
+    font-size: .75rem; font-weight: 500;
+    color: #4338ca; margin-top: 6px;
+    letter-spacing: .5px;
+  }
+
+  /* Progress bar */
+  .pl-bar-wrap {
+    width: 220px; height: 3px;
+    background: #e6e2d6; border-radius: 99px; overflow: hidden;
+    animation: plCardIn .7s .2s cubic-bezier(.16,1,.3,1) both;
+  }
+  .pl-bar {
+    height: 100%; width: 0;
+    background: linear-gradient(90deg, #6b21a8, #b45309);
+    border-radius: 99px;
+    animation: plBarFill 1.8s .25s cubic-bezier(.4,0,.2,1) forwards;
+  }
+  @keyframes plBarFill {
+    0%  { width: 0; }
+    55% { width: 75%; }
+    85% { width: 92%; }
+    100%{ width: 100%; }
+  }
+
+  /* Caption */
+  .pl-caption {
+    font-family: 'Inter', sans-serif;
+    font-size: .78rem; font-weight: 500; color: #6366f1;
+    animation: plCardIn .7s .3s cubic-bezier(.16,1,.3,1) both;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .pl-caption-dot {
+    width: 5px; height: 5px; border-radius: 50%;
+    background: #6b21a8;
+    animation: plDotPulse 1.2s infinite ease-in-out;
+  }
+  .pl-caption-dot:nth-child(2) { animation-delay: .2s; }
+  .pl-caption-dot:nth-child(3) { animation-delay: .4s; }
+  @keyframes plDotPulse {
+    0%,100% { opacity:.2; transform: scale(.7); }
+    50%     { opacity: 1; transform: scale(1); }
+  }
+  </style>
 </head>
 <body>
+
+<!-- ═══════════════════ GLOBAL PAGE LOADER ═══════════════════ -->
+<div id="page-loader" role="status" aria-label="Loading PersonaLearn">
+  <!-- Floating particles -->
+  <div class="pl-particles">
+    <div class="pl-p" style="width:10px;height:10px;left:12%;--dur:5s;--delay:0s;"></div>
+    <div class="pl-p" style="width:7px;height:7px;left:28%;--dur:4.5s;--delay:.8s;"></div>
+    <div class="pl-p" style="width:12px;height:12px;left:55%;--dur:6s;--delay:.3s;"></div>
+    <div class="pl-p" style="width:8px;height:8px;left:70%;--dur:5.5s;--delay:1.1s;"></div>
+    <div class="pl-p" style="width:6px;height:6px;left:85%;--dur:4s;--delay:.5s;"></div>
+    <div class="pl-p" style="width:9px;height:9px;left:40%;--dur:5.2s;--delay:1.4s;"></div>
+  </div>
+
+  <div class="pl-card">
+    <!-- Spinning ring + icon -->
+    <div class="pl-logo-wrap">
+      <div class="pl-logo-ring"></div>
+      <div class="pl-logo-inner"><i class="bi bi-mortarboard-fill" style="color:white;"></i></div>
+    </div>
+
+    <!-- Brand -->
+    <div class="pl-brand">
+      <div class="pl-brand-name">Persona<span>Learn</span></div>
+      <div class="pl-brand-tag">AI-Powered Personalized Learning</div>
+    </div>
+
+    <!-- Progress bar -->
+    <div class="pl-bar-wrap"><div class="pl-bar"></div></div>
+
+    <!-- Animated caption -->
+    <div class="pl-caption">
+      <div class="pl-caption-dot"></div>
+      <div class="pl-caption-dot"></div>
+      <div class="pl-caption-dot"></div>
+      Preparing your learning experience
+    </div>
+  </div>
+</div>
+
+<script>
+  // Hide loader as soon as page finishes loading
+  (function() {
+    function hideLoader() {
+      var l = document.getElementById('page-loader');
+      if (l) l.classList.add('pl-out');
+    }
+    if (document.readyState === 'complete') {
+      setTimeout(hideLoader, 2500);
+    } else {
+      window.addEventListener('load', function() {
+        setTimeout(hideLoader, 2500);
+      });
+    }
+    // Safety fallback: hide after 3.5s no matter what
+    setTimeout(hideLoader, 3500);
+  })();
+</script>
 
 <!-- ═══════════════════ MOBILE NAV DRAWER ═══════════════════ -->
 {% if user.is_authenticated %}
