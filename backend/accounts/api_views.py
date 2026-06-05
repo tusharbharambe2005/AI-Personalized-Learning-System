@@ -24,10 +24,15 @@ def get_tokens_for_user(user):
     }
 
 
-def user_data(user):
+def user_data(user, request=None):
     """Serialize user + profile for the frontend."""
     profile, _ = UserProfile.objects.get_or_create(user=user)
     pref, _ = UserPreference.objects.get_or_create(user=user)
+    
+    avatar_url = profile.get_avatar_url()
+    if avatar_url and request:
+        avatar_url = request.build_absolute_uri(avatar_url)
+        
     return {
         'id': user.id,
         'username': user.username,
@@ -39,7 +44,7 @@ def user_data(user):
             'pro_requested': profile.pro_requested,
             'institution': profile.institution,
             'bio': profile.bio,
-            'avatar_url': profile.get_avatar_url(),
+            'avatar_url': avatar_url,
             'avatar_initial': profile.get_avatar_initial(),
             'preferred_style': pref.preferred_style,
             'interaction_count': pref.interaction_count,
@@ -87,7 +92,7 @@ class RegisterAPIView(APIView):
 
         tokens = get_tokens_for_user(user)
         return Response({
-            'user': user_data(user),
+            'user': user_data(user, request),
             **tokens,
         }, status=status.HTTP_201_CREATED)
 
@@ -109,7 +114,7 @@ class LoginAPIView(APIView):
 
         tokens = get_tokens_for_user(user)
         return Response({
-            'user': user_data(user),
+            'user': user_data(user, request),
             **tokens,
         })
 
@@ -134,7 +139,7 @@ class MeAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        return Response(user_data(request.user))
+        return Response(user_data(request.user, request))
 
     def patch(self, request):
         """Update profile info."""
@@ -166,7 +171,7 @@ class MeAPIView(APIView):
             
         profile.save()
 
-        return Response(user_data(user))
+        return Response(user_data(user, request))
 
 
 class ChangePasswordAPIView(APIView):
