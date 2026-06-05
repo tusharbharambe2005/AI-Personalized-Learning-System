@@ -2,3 +2,5 @@
 db.sqlite3
 .env
 media/
+venvMiniModel/
+/render.yaml

@@ -29,8 +29,7 @@ _load_env_file(BASE_DIR / '.env')
 
 # ── Security (use env vars in production) ──────────────────────
 SECRET_KEY = os.environ.get(
-    'DJANGO_SECRET_KEY',
-    'django-insecure-personalized-learning-system-secret-key-change-in-production'
+    'DJANGO_SECRET_KEY'
 )
 
 DEBUG = os.environ.get('DJANGO_DEBUG', 'True') == 'True'
