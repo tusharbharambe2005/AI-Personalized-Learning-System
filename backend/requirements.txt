@@ -10,3 +10,4 @@ whitenoise==6.12.0
 sqlparse==0.5.5
 google-generativeai
 psycopg2-binary==2.9.11
+Pillow==12.2.0
