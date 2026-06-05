@@ -1,5 +1,4 @@
 .media
-db.sqlite3
 .env
 media/
 venvMiniModel/
