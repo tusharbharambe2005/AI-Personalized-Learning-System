@@ -159,6 +159,11 @@ class MeAPIView(APIView):
             profile.institution = data['institution']
         if 'bio' in data:
             profile.bio = data['bio']
+            
+        # Handle avatar upload
+        if 'avatar' in request.FILES:
+            profile.avatar = request.FILES['avatar']
+            
         profile.save()
 
         return Response(user_data(user))

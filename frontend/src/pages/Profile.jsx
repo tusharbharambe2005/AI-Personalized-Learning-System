@@ -21,22 +21,48 @@ export default function Profile() {
   const [infoLoading, setInfoLoading] = useState(false);
   const [pwLoading, setPwLoading] = useState(false);
 
+  const [avatarFile, setAvatarFile] = useState(null);
+  const [avatarPreview, setAvatarPreview] = useState(null);
+
   const avatarInitial = user?.profile?.avatar_initial || user?.first_name?.[0]?.toUpperCase() || user?.username?.[0]?.toUpperCase() || 'U';
+
+  const handleAvatarChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setAvatarFile(file);
+      setAvatarPreview(URL.createObjectURL(file));
+    }
+  };
 
   const handleInfoSave = async (e) => {
     e.preventDefault();
     setInfoLoading(true);
     setInfoMsg(null);
     try {
-      const updated = await authApi.updateProfile({
-        first_name: form.first_name,
-        last_name: form.last_name,
-        username: form.username,
-        email: form.email,
-        institution: form.institution,
-        bio: form.bio,
-      });
+      let dataToSend;
+      if (avatarFile) {
+        dataToSend = new FormData();
+        dataToSend.append('first_name', form.first_name);
+        dataToSend.append('last_name', form.last_name);
+        dataToSend.append('username', form.username);
+        dataToSend.append('email', form.email);
+        dataToSend.append('institution', form.institution);
+        dataToSend.append('bio', form.bio);
+        dataToSend.append('avatar', avatarFile);
+      } else {
+        dataToSend = {
+          first_name: form.first_name,
+          last_name: form.last_name,
+          username: form.username,
+          email: form.email,
+          institution: form.institution,
+          bio: form.bio,
+        };
+      }
+
+      const updated = await authApi.updateProfile(dataToSend);
       setUser(updated);
+      setAvatarFile(null);
       setInfoMsg({ type: 'success', text: '✅ Profile updated successfully!' });
     } catch (err) {
       const errData = err?.data || {};
@@ -84,11 +110,15 @@ export default function Profile() {
         <aside className="profile-sidebar anim-fade-up">
           {/* Avatar Card */}
           <div className="profile-avatar-card">
-            <div className="profile-avatar-ring">
-              {user?.profile?.avatar_url
-                ? <img src={user.profile.avatar_url} alt="Avatar" className="profile-avatar-img" />
+            <div className="profile-avatar-ring" style={{ position: 'relative', cursor: 'pointer' }} onClick={() => document.getElementById('avatar-upload').click()}>
+              {avatarPreview || user?.profile?.avatar_url
+                ? <img src={avatarPreview || user.profile.avatar_url} alt="Avatar" className="profile-avatar-img" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
                 : <div className="profile-avatar-initials">{avatarInitial}</div>}
+              <div style={{ position: 'absolute', bottom: 0, right: 0, background: 'var(--primary)', color: '#fff', borderRadius: '50%', width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 4px rgba(0,0,0,0.2)' }}>
+                <i className="bi bi-camera-fill"></i>
+              </div>
             </div>
+            <input id="avatar-upload" type="file" accept="image/*" style={{ display: 'none' }} onChange={handleAvatarChange} />
             <div className="profile-name">{form.first_name} {form.last_name || user?.username}</div>
             <div className="profile-username">@{form.username}</div>
             {form.institution && (

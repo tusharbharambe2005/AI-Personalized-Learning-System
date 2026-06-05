@@ -28,10 +28,11 @@ export function clearTokens() {
 // ─── Core fetch wrapper ───────────────────────────────────────────────────────
 async function apiFetch(path, options = {}) {
   const url = `${BASE_URL}${path}`;
-  const headers = {
-    'Content-Type': 'application/json',
-    ...options.headers,
-  };
+  const headers = { ...options.headers };
+  
+  if (options.body && !(options.body instanceof FormData) && !headers['Content-Type']) {
+    headers['Content-Type'] = 'application/json';
+  }
 
   const token = getAccessToken();
   if (token) headers['Authorization'] = `Bearer ${token}`;
@@ -100,11 +101,12 @@ export const authApi = {
 
   me: () => apiFetch('/api/auth/me/'),
 
-  updateProfile: (data) =>
-    apiFetch('/api/auth/me/', {
+  updateProfile: (data) => {
+    return apiFetch('/api/auth/me/', {
       method: 'PATCH',
-      body: JSON.stringify(data),
-    }),
+      body: data instanceof FormData ? data : JSON.stringify(data),
+    });
+  },
 
   changePassword: (data) =>
     apiFetch('/api/auth/change-password/', {
