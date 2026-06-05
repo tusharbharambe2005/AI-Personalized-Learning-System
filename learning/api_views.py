@@ -45,3 +45,15 @@ class TopicDetailAPIView(generics.RetrieveAPIView):
     queryset = Topic.objects.all()
     serializer_class = TopicDetailSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
+
+
+class TopicBySlugAPIView(APIView):
+    """GET /api/subjects/<subject_slug>/topics/<topic_slug>/ — topic by slugs."""
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def get(self, request, subject_slug, topic_slug):
+        subject = get_object_or_404(Subject, slug=subject_slug)
+        topic = get_object_or_404(Topic, subject=subject, slug=topic_slug)
+        serializer = TopicDetailSerializer(topic)
+        return Response(serializer.data)
+

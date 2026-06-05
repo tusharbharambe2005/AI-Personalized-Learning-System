@@ -13,6 +13,7 @@ urlpatterns = [
     path('accounts/', include('accounts.urls')),
     path('', include('learning.urls')),
     path('', include('chatbot.urls')),
+    path('api/auth/', include('accounts.api_urls')),
     path('api/', include('recommendations.api_urls')),
     path('api/', include('learning.api_urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

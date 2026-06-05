@@ -34,15 +34,17 @@ class VideoResourceSerializer(serializers.ModelSerializer):
 
 class TopicSerializer(serializers.ModelSerializer):
     subject_name = serializers.CharField(source='subject.name', read_only=True)
+    subject_slug = serializers.CharField(source='subject.slug', read_only=True)
     content_version_count = serializers.SerializerMethodField()
     video_count = serializers.SerializerMethodField()
+    is_completed = serializers.SerializerMethodField()
 
     class Meta:
         model = Topic
         fields = [
             'id', 'title', 'slug', 'description', 'subject',
-            'subject_name', 'order', 'content_version_count',
-            'video_count', 'created_at'
+            'subject_name', 'subject_slug', 'order', 'content_version_count',
+            'video_count', 'created_at', 'is_completed'
         ]
 
     def get_content_version_count(self, obj):
@@ -51,19 +53,35 @@ class TopicSerializer(serializers.ModelSerializer):
     def get_video_count(self, obj):
         return obj.videos.count()
 
+    def get_is_completed(self, obj):
+        request = self.context.get('request')
+        if not request or not request.user.is_authenticated:
+            return False
+        interactions = obj.user_interactions.filter(user=request.user).count()
+        return interactions > 0
+
+
 
 class TopicDetailSerializer(serializers.ModelSerializer):
     """Full topic detail with content versions and videos."""
     content_versions = ContentVersionSerializer(many=True, read_only=True)
     videos = VideoResourceSerializer(many=True, read_only=True)
     subject_name = serializers.CharField(source='subject.name', read_only=True)
+    is_completed = serializers.SerializerMethodField()
 
     class Meta:
         model = Topic
         fields = [
             'id', 'title', 'slug', 'description', 'subject',
-            'subject_name', 'order', 'content_versions', 'videos', 'created_at'
+            'subject_name', 'order', 'content_versions', 'videos', 'created_at', 'is_completed'
         ]
+
+    def get_is_completed(self, obj):
+        request = self.context.get('request')
+        if not request or not request.user.is_authenticated:
+            return False
+        interactions = obj.user_interactions.filter(user=request.user).count()
+        return interactions > 0
 
 
 class SubjectSerializer(serializers.ModelSerializer):
