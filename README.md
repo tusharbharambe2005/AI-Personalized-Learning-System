@@ -1,6 +1,6 @@
-# 👑 PersonaLearn — AI-Powered Personalized Learning System
+# 🎓 PersonaLearn — AI-Powered Personalized Learning System
 
-A complete MVP Django web application that not only recommends learning content based on each student's unique learning style using a **rule-based engine**, but also features a **Personalized AI Mentor** powered by Google Gemini for premium users.
+A full-stack web app that recommends learning content based on each student's unique learning style using a **rule-based recommendation engine** and a **Personalized AI Mentor** powered by Google Gemini.
 
 ---
 
@@ -9,10 +9,10 @@ A complete MVP Django web application that not only recommends learning content 
 PersonaLearn solves a core educational challenge: the same topic explained in different ways works for different students. The system:
 
 1. Presents **multiple explanation styles** (Diagram, Analogy, Example, Theory, Logic) for every topic.
-2. Lets the student **rate the version** (1–5 stars) to indicate how well it helped them learn.
-3. **Updates the student's preference profile** incrementally using the content's style scores.
-4. Uses a **weighted dot-product match score** to sort future content and subject-specific video recommendations.
-5. Offers a **Pro Upgrade** tier, unlocking a **Personalized AI Chatbot** that adapts its teaching style to the student's highest-ranked learning preference.
+2. Lets the student **rate the explanation** (1–5 stars) to indicate how well it helped them learn.
+3. **Updates the student's preference profile** using the content's style scores.
+4. Uses a **weighted match score** to sort future content and video recommendations.
+5. Features a **Personalized AI Chatbot** that adapts its teaching style to the student's learning preference.
 
 ---
 
@@ -20,31 +20,31 @@ PersonaLearn solves a core educational challenge: the same topic explained in di
 
 | Feature | Description |
 |---|---|
-| Auth | Register, Login, Logout with Django built-in auth |
+| Auth | Register, Login, Logout with JWT |
 | Subjects | Admin-created subjects with icons and colors |
 | Topics | Multiple topics per subject with ordering |
-| Content Versions | 5 explanation styles per topic with style scores |
-| Video Resources | Subject-aware YouTube videos tagged with style scores |
+| Content Versions | 5 explanation styles per topic |
+| Video Resources | YouTube videos tagged with style scores |
 | Preference Engine | Cumulative weighted preference profile per user |
 | Recommendation | Rule-based match scoring |
-| Pro Upgrade System | Coupon-based upgrade request (`TUSHAR123`) with Admin approval flow |
-| Personalized AI Chatbot | Gemini-powered AI Mentor that dynamically adapts to user learning styles |
+| Personalized AI Chatbot | Gemini-powered AI Mentor adapting to learning style |
 | Dashboard | Radar chart, progress %, recommended topics & videos |
 | History | Full interaction log with style badges & star ratings |
-| Premium UI/UX | "Royal/Medieval" design system, glassmorphism, fluid animations |
+| React Frontend | Modern SPA with responsive design |
 | REST API | DRF endpoints for all major resources |
 
 ---
 
 ## 🛠 Tech Stack
 
-- **Backend**: Python 3.x, Django 6.x, Django REST Framework
-- **AI Integration**: Google GenAI SDK (`google-generativeai`), Gemini API
-- **Database**: SQLite (default)
-- **Frontend**: Django Templates, Vanilla CSS, Vanilla JS, Bootstrap 5
-- **Charts**: Chart.js (CDN, radar chart for preference profile)
-- **Fonts**: Google Fonts (`Cinzel Decorative`, `MedievalSharp`, `Inter`)
-- **Auth**: Django built-in authentication
+| Layer | Technology |
+|---|---|
+| **Backend** | Python 3.x, Django 5.x, Django REST Framework |
+| **Frontend** | React 18, Vite, Vanilla CSS |
+| **AI** | Google Gemini API (`google-generativeai`) |
+| **Auth** | JWT (SimpleJWT) |
+| **Database** | SQLite (dev) |
+| **Deployment** | Render (Backend + Frontend) |
 
 ---
 
@@ -52,115 +52,150 @@ PersonaLearn solves a core educational challenge: the same topic explained in di
 
 ```
 mini project/
-├── personalized_learning/       # Django project config
-├── accounts/                    # User auth + Pro Upgrade models/views
-├── chatbot/                     # AI Chatbot app (Gemini integration & API)
-├── learning/                    # Core learning content (Subjects, Topics, Videos)
-├── recommendations/             # Core recommendation engine logic
-├── templates/
-│   ├── base.html               # Navbar, footer, floating chatbot UI
-│   ├── accounts/               # login, register, upgrade
-│   ├── chatbot/                # Chatbot glassmorphism interface
-│   └── learning/               # home, dashboard, subjects, videos, history
-├── static/
-│   ├── css/style.css           # Royal glassmorphism theme, animations
-│   └── js/main.js              # Scroll effects, card selection
-├── requirements.txt
-├── ai_presnlize_info.md         # Detailed engine & logic documentation
+├── backend/                         # Django Backend
+│   ├── manage.py
+│   ├── requirements.txt
+│   ├── personalized_learning/       # Django project config (settings, urls)
+│   ├── accounts/                    # User auth + profile
+│   ├── chatbot/                     # AI Chatbot (Gemini integration & API)
+│   ├── learning/                    # Subjects, Topics, Content, Videos
+│   ├── recommendations/             # Recommendation engine
+│   ├── templates/                   # Django HTML templates
+│   └── static/                      # CSS, JS assets
+│
+├── frontend/                        # React Frontend
+│   ├── src/
+│   │   ├── pages/                   # Dashboard, Topics, Chatbot, History...
+│   │   ├── components/              # Navbar, Cards, etc.
+│   │   ├── context/                 # Auth context
+│   │   └── services/                # API layer (api.js)
+│   ├── package.json
+│   └── vite.config.js
+│
 └── README.md
 ```
 
 ---
 
-## 🚀 Installation & Setup
+## 🚀 Local Development Setup
 
-### 1. Clone / Navigate to Project
+### 1. Clone the Repository
 ```bash
+git clone <your-repo-url>
 cd "mini project"
 ```
 
-### 2. Create & Activate Virtual Environment
-```bash
-python3 -m venv venvMiniModel
-source venvMiniModel/bin/activate   # macOS/Linux
-# venvMiniModel\Scripts\activate     # Windows
-```
+---
 
-### 3. Install Dependencies
+### 🐍 Backend (Django)
+
 ```bash
+cd backend
+
+# Create & activate virtual environment
+python3 -m venv venv
+source venv/bin/activate        # macOS/Linux
+# venv\Scripts\activate         # Windows
+
+# Install dependencies
 pip install -r requirements.txt
-```
-*(Make sure `google-generativeai` is installed for the chatbot to work).*
 
-### 4. Environment Variables
-To use the AI Chatbot, set your Gemini API key in your environment (or hardcode it in `chatbot_engine.py` for local testing):
-```bash
-export GEMINI_API_KEY="your-api-key-here"
-```
+# Create .env file
+echo "GEMINI_API_KEY=your-gemini-api-key" > .env
 
-### 5. Run Migrations
-```bash
-python manage.py makemigrations accounts chatbot learning recommendations
+# Run migrations
 python manage.py migrate
-```
 
-### 6. Load Demo Seed Data
-```bash
-python manage.py seed_data
-```
-This creates:
-- **Admin** user: `admin / admin123`
-- **Student** user: `student / student123`
-- 3 subjects, 15 topics, 60 content versions, 45 videos
+# Create superuser (admin)
+python manage.py createsuperuser
 
-### 7. Start Development Server
-```bash
+# Start server
 python manage.py runserver
 ```
 
-Visit: **http://127.0.0.1:8000/**
+Backend runs at: **http://localhost:8000**
 
 ---
 
-## 🔑 Default Credentials
+### ⚛️ Frontend (React)
 
-| Role | Username | Password | Access |
-|---|---|---|---|
-| Admin | `admin` | `admin123` | All pages + `/admin/` + Approve Pro Requests |
-| Student | `student` | `student123` | All student pages |
+```bash
+cd frontend
 
----
+# Install dependencies
+npm install
 
-## 👑 How to Test Pro & AI Features
+# Create .env file
+echo "VITE_API_URL=" > .env    # Leave empty for local (uses Vite proxy)
 
-1. Login as a student.
-2. Go to your Profile dropdown -> **Upgrade to Pro**.
-3. Enter the coupon code: `TUSHAR123`.
-4. Your status will change to **Pending**.
-5. Login as an `admin` (or use a superuser account).
-6. Go to the Django Admin panel (`/admin/`).
-7. Navigate to `User Profiles`, select your student account, and use the Action dropdown: **"Approve selected Pro upgrade requests"**.
-8. Log back in as the student. You will now see the floating 🔮 AI Chatbot icon on all pages!
-9. Open it to experience a personalized AI tutor that adapts its system prompt to your highest learning style score (e.g., Analogy, Diagram).
+# Start dev server
+npm run dev
+```
+
+Frontend runs at: **http://localhost:5173**
+
+> ℹ️ The Vite proxy in `vite.config.js` automatically forwards `/api` requests to `localhost:8000` in development.
 
 ---
 
-## 🧠 Recommendation Engine Flow
+## 🌐 Production Deployment (Render)
 
-Check the included `ai_presnlize_info.md` file for a deep dive into the math, logic, and architecture of the personalization engine and chatbot system.
+### Backend (Web Service)
+| Setting | Value |
+|---|---|
+| Root Directory | `backend` |
+| Build Command | `pip install -r requirements.txt && python manage.py collectstatic --noinput && python manage.py migrate` |
+| Start Command | `gunicorn personalized_learning.wsgi:application` |
+
+**Environment Variables:**
+```
+DJANGO_SECRET_KEY    = <your-secret-key>
+DJANGO_DEBUG         = False
+GEMINI_API_KEY       = <your-gemini-key>
+CORS_ALLOWED_ORIGIN  = https://your-react-app.onrender.com
+```
+
+### Frontend (Static Site)
+| Setting | Value |
+|---|---|
+| Root Directory | `frontend` |
+| Build Command | `npm install && npm run build` |
+| Publish Directory | `dist` |
+
+**Environment Variables:**
+```
+VITE_API_URL = https://your-django-backend.onrender.com
+```
+
+---
+
+## 🔑 Admin Access
+
+Go to `/admin/` on your deployed backend URL to:
+- Create Subjects & Topics
+- Add Content Versions for each topic
+- Manage users
+
+---
+
+## 🧠 How the Recommendation Engine Works
+
+1. Every content version has **style scores** (0–100) for 5 styles: Diagram, Analogy, Example, Theory, Logic.
+2. When a user rates content, their **preference profile** (5 scores) is updated using a weighted average.
+3. Future content is **ranked by dot-product** between user profile and content style scores.
+4. The AI Chatbot reads the user's **top-ranked style** and adapts its explanation approach accordingly.
 
 ---
 
 ## 🚀 Future Scope
 
 - [ ] Collaborative filtering (users with similar styles → shared recommendations)
-- [ ] Automated content generation (using Gemini to generate the 5 topic versions)
+- [ ] Automated content generation using Gemini
 - [ ] PDF/Notes export per topic
 - [ ] Leaderboard and gamification badges
-- [ ] Mobile app (React Native) using the DRF APIs
 
 ---
 
 ## 📝 License
 
-MIT — free to use for academic and competition projects.
+MIT — free to use for academic and personal projects.
