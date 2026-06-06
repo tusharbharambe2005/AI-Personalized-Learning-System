@@ -164,7 +164,7 @@ CORS_ALLOWED_ORIGIN  = https://your-react-app.onrender.com
 
 **Environment Variables:**
 ```
-VITE_API_URL = https://your-django-backend.onrender.com
+VITE_API_URL = URL
 ```
 
 ---
