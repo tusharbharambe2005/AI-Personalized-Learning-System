@@ -13,7 +13,7 @@ class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
     bio = models.TextField(blank=True)
     avatar_initial = models.CharField(max_length=2, blank=True)  # For generated avatar
-    avatar = models.ImageField(upload_to='avatars/', blank=True, null=True)
+    avatar = models.URLField(max_length=500, blank=True)  # Cloudinary URL
     institution = models.CharField(max_length=200, blank=True)
     
     # Pro upgrade fields
@@ -35,13 +35,8 @@ class UserProfile(models.Model):
         return self.user.username[0].upper()
 
     def get_avatar_url(self):
-        """Return avatar URL or None if no avatar uploaded."""
-        if self.avatar and hasattr(self.avatar, 'url'):
-            try:
-                return self.avatar.url
-            except Exception:
-                return None
-        return None
+        """Return Cloudinary avatar URL or None."""
+        return self.avatar if self.avatar else None
 
 
 @receiver(post_save, sender=User)

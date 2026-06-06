@@ -3,6 +3,8 @@ Auth API endpoints for the React frontend.
 Handles: register, login (JWT), logout, current user info, profile update, upgrade request.
 """
 import os
+import cloudinary
+import cloudinary.uploader
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate
 from django.utils import timezone
@@ -165,9 +167,31 @@ class MeAPIView(APIView):
         if 'bio' in data:
             profile.bio = data['bio']
             
-        # Handle avatar upload
+        # Handle avatar upload → Cloudinary
         if 'avatar' in request.FILES:
-            profile.avatar = request.FILES['avatar']
+            try:
+                cloud_name = os.environ.get('CLOUDINARY_CLOUD_NAME')
+                api_key = os.environ.get('CLOUDINARY_API_KEY')
+                api_secret = os.environ.get('CLOUDINARY_API_SECRET')
+                
+                if cloud_name and api_key and api_secret:
+                    cloudinary.config(
+                        cloud_name=cloud_name,
+                        api_key=api_key,
+                        api_secret=api_secret,
+                    )
+                    result = cloudinary.uploader.upload(
+                        request.FILES['avatar'],
+                        folder='avatars',
+                        public_id=f'user_{user.id}',
+                        overwrite=True,
+                        resource_type='image',
+                    )
+                    profile.avatar = result['secure_url']
+                else:
+                    return Response({'error': 'Cloudinary not configured.'}, status=500)
+            except Exception as e:
+                return Response({'error': f'Image upload failed: {str(e)}'}, status=500)
             
         profile.save()
 

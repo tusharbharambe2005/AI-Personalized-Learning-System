@@ -49,7 +49,6 @@ INSTALLED_APPS = [
     'corsheaders',
     'crispy_forms',
     'crispy_bootstrap5',
-    'cloudinary_storage',
     'cloudinary',
     # Local apps
     'accounts',
@@ -130,32 +129,18 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
-# ── Cloudinary (for persistent image storage) ──────────────────
-CLOUDINARY_STORAGE = {
-    'CLOUD_NAME': os.environ.get('CLOUDINARY_CLOUD_NAME', ''),
-    'API_KEY':    os.environ.get('CLOUDINARY_API_KEY', ''),
-    'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET', ''),
-}
+# ── Cloudinary (direct upload via SDK) ────────────────────────
+# Images are uploaded via cloudinary.uploader in api_views.py
+# Credentials are read from env vars at upload time
 
-# Django 4.2+ STORAGES dict (replaces deprecated DEFAULT_FILE_STORAGE & STATICFILES_STORAGE)
-if os.environ.get('CLOUDINARY_CLOUD_NAME'):
-    STORAGES = {
-        'default': {
-            'BACKEND': 'cloudinary_storage.storage.MediaCloudinaryStorage',
-        },
-        'staticfiles': {
-            'BACKEND': 'whitenoise.storage.CompressedManifestStaticFilesStorage',
-        },
-    }
-else:
-    STORAGES = {
-        'default': {
-            'BACKEND': 'django.core.files.storage.FileSystemStorage',
-        },
-        'staticfiles': {
-            'BACKEND': 'whitenoise.storage.CompressedManifestStaticFilesStorage',
-        },
-    }
+STORAGES = {
+    'default': {
+        'BACKEND': 'django.core.files.storage.FileSystemStorage',
+    },
+    'staticfiles': {
+        'BACKEND': 'whitenoise.storage.CompressedManifestStaticFilesStorage',
+    },
+}
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 

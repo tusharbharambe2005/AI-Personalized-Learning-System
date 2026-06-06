@@ -12,4 +12,3 @@ google-generativeai
 psycopg2-binary==2.9.11
 Pillow==12.2.0
 cloudinary==1.44.1
-django-cloudinary-storage==0.3.0
